@@ -1,0 +1,42 @@
+[
+  {
+    "asset_id": "AC-B12-02",
+    "asset_type": "air_conditioner",
+    "asset_name_ar": "مكيف غرفة الاجتماعات",
+    "building": "A",
+    "floor": "1",
+    "room": "B12",
+    "model": "Demo-AC-01",
+    "status": "active"
+  },
+  {
+    "asset_id": "PR-301-01",
+    "asset_type": "printer",
+    "asset_name_ar": "طابعة غرفة 301",
+    "building": "A",
+    "floor": "3",
+    "room": "301",
+    "model": "Demo-Printer-A",
+    "status": "active"
+  },
+  {
+    "asset_id": "PR-305-01",
+    "asset_type": "printer",
+    "asset_name_ar": "طابعة غرفة 305",
+    "building": "A",
+    "floor": "3",
+    "room": "305",
+    "model": "Demo-Printer-B",
+    "status": "active"
+  },
+  {
+    "asset_id": "PR-310-01",
+    "asset_type": "printer",
+    "asset_name_ar": "طابعة غرفة 310",
+    "building": "A",
+    "floor": "3",
+    "room": "310",
+    "model": "Demo-Printer-C",
+    "status": "active"
+  }
+]

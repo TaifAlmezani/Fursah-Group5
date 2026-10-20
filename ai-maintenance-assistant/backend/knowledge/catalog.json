@@ -1,0 +1,27 @@
+{
+  "version": 1,
+  "documents": {
+    "air_conditioning.md": {
+      "asset_type": "air_conditioner", "source_status": "project_reference",
+      "sections": {
+        "تسرب المياه": {"symptoms": ["water_leak"], "safety_signals": [], "scope": "device"},
+        "صوت غير طبيعي": {"symptoms": ["abnormal_noise"], "safety_signals": [], "scope": "device"}
+      }
+    },
+    "printers.md": {
+      "asset_type": "printer", "source_status": "project_reference",
+      "sections": {
+        "انحشار الورق": {"symptoms": ["paper_jam"], "safety_signals": [], "scope": "device"},
+        "عدم التشغيل": {"symptoms": ["not_working", "power_issue"], "safety_signals": [], "scope": "device"}
+      }
+    },
+    "plumbing.md": {
+      "asset_type": "plumbing", "source_status": "project_reference",
+      "sections": {"تسرب المياه": {"symptoms": ["water_leak"], "safety_signals": [], "scope": "device"}}
+    },
+    "electrical.md": {
+      "asset_type": "electrical", "source_status": "project_reference",
+      "sections": {"تعرض المعدات الكهربائية للمياه": {"symptoms": [], "safety_signals": ["electrical_risk"], "scope": "shared_safety"}}
+    }
+  }
+}
