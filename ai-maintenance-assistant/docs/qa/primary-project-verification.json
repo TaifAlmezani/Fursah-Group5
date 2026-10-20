@@ -1,0 +1,172 @@
+{
+  "project_root": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant",
+  "backup_directory": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant\\backend\\data\\backups\\handoff-integration-20261014-efa2fda8",
+  "copied_files": 43,
+  "runtime": {
+    "436": {
+      "cwd": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant\\backend",
+      "command": "C:\\Python313\\python.exe C:\\Users\\abdulrazaq\\AppData\\Roaming\\Python\\Python313\\Scripts\\uvicorn.exe app.main:app --reload"
+    },
+    "16028": {
+      "cwd": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant\\frontend",
+      "command": "node D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant\\frontend\\node_modules\\.bin\\\\..\\vite\\bin\\vite.js"
+    },
+    "restore_endpoint_present": true,
+    "continuation_required_fields": [
+      "input_type",
+      "step_id"
+    ]
+  },
+  "backend": {
+    "tests": "154",
+    "failures": "0",
+    "errors": "0"
+  },
+  "frontend": {
+    "startTime": "2026-10-14T03:51:19.336Z",
+    "duration": 128773.67499999999,
+    "expected": 42,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0,
+    "build": "passed"
+  },
+  "live_keyboard": {
+    "url": "http://localhost:5173",
+    "passed": true,
+    "source": "live served page",
+    "api": "explicit intercepted fixtures; no real records created",
+    "checks": [
+      "native input",
+      "automatic focus",
+      "Space",
+      "ArrowDown",
+      "ArrowUp",
+      "ArrowLeft",
+      "ArrowRight",
+      "wrapping",
+      "Tab",
+      "Shift+Tab",
+      "confirmed asset"
+    ],
+    "submitted": {
+      "input_type": "asset_selection",
+      "asset_id": "PR-305-01",
+      "step_id": "step-keyboard"
+    }
+  },
+  "data_check": {
+    "backup_ticket_count": 50,
+    "current_ticket_count": 51,
+    "missing_original_tickets": 0,
+    "modified_original_tickets": 0,
+    "new_tickets_since_backup": 1,
+    "integrity_check": "ok"
+  },
+  "sha256": {
+    ".gitignore": "3d0cd520be26e51e2ed37fb1a4300597a99be945374238410cb9082dbe79ef8d",
+    "backend/app/db/database.py": "88b9753e7a214e59581df4f80341c7e3557dd5eb2d3d8bbd1da380be7b01cdaf",
+    "backend/app/llm/client.py": "16d05d66eecc8f87c097d1d9c23b48ad8d04550a7d63cf5d1e10b07e95a3ca2a",
+    "backend/app/main.py": "c84392de44fd95bee2f88670cf11caa96879c478a6fe8c31023ae406bf24202e",
+    "backend/app/policies/rules.py": "983100aaefad8a8866d02b2a4ad5a250f0499bfb67cf5fae2228e7d1afd568c8",
+    "backend/app/schemas.py": "3410f1b0d567f11c647a4e10a81c43f1b6debc84ebd67c195b022a816df534b4",
+    "backend/app/workflow/locking.py": "b80923d4dafd7ab4adec26ad290c92dbe7230feda2b15eff518f0846f06249ef",
+    "backend/scripts/qa_neural_extraction.py": "cdf2632aadf33db1080a55b4cc2b93afbc750f9aae5e8213d22d4fae88da6ef0",
+    "backend/scripts/qa_neural_workflow.py": "2a7a6a7a0d9c7a76d63193bcc9c9660cea50969795fa8c857ba27554606eecff",
+    "backend/scripts/verify_local_stack.py": "89c5f9496574d0f930b8394eb752f3da80fdaf4d93298d45f890cc456de601b8",
+    "backend/tests/browser_server.py": "2c45b511db9b6ac98ecbf0030d4883d0a15dda38e370454ab3362ea9356f58b7",
+    "backend/tests/qa/test_adversarial_cases.py": "6ca7cce08e133d170325fe9faed073c5f0f6d9afd5f5c4daf1a3f58bb779bf97",
+    "backend/tests/test_concurrency.py": "658a63c92ffdebf84ce6866233dcbd923f2ee1b1d5622869f457b5ee11f52ddc",
+    "backend/tests/test_error_boundaries.py": "338226872c3132a10fc3859bfd655691bdb1bc291faa733296790d36d9b2d7b2",
+    "backend/tests/test_local_llm.py": "7d754fa85306e98dbb549d42e54ccd02b055ab9f15095a7deb9536a78a45de6e",
+    "backend/tests/test_policies.py": "9064723aaca660b8c76f383b5afd4e666f27830941e75273d4bc35a42e85e898",
+    "backend/tests/test_requests.py": "9e04ba64f991f2dd9eeeef3e34f488b5ada2555dfd01a75cd66ee0083e45e195",
+    "backend/tests/test_restore.py": "91705254065a50bb6d3f5d6fc7b1fbaac51eac34493573036dd4d94b998ee00e",
+    "backend/tests/test_safety_workflow.py": "e8913a99f05fb0f026aeb59f7f9ef790eedfaa5570c7c2cfff5ed091ed33e79b",
+    "backend/tests/test_workflow.py": "163dbcdce921b3ca77cd12a01cae3c4ff1ed67e0cc2592b31f51c431ac0cc2b0",
+    "docs/ARCHITECTURE.md": "b614078b2e9faf282c54040e3a1ebe6b5b5c2a9881ebd0188dce07b52cecb56e",
+    "docs/HANDOFF_REPAIRS.md": "3838f969e1f0aad6e9baa10cec608cf0fe56a7f736f99ad283837763240a420f",
+    "docs/QA_AUDIT.md": "466de7727af702bc2f118dba97790c990cf5de8a7387a321ecaeb8c709d1c5de",
+    "docs/QA_REPAIRS.md": "9c3dff0d4cf676b6140de7b5290919e6a754fcab189dacab77dfd8c04282b5ef",
+    "docs/TESTING.md": "9b4f94986306e9c69c794cd8fce90a4f818a70b8b1e47ebc4f7c9c4e41f26efd",
+    "docs/qa/live-keyboard-5173.json": "e2ab0a6469d6755366efe53b3618d46bd6acfa1b3a4b4ad336cbefd347f64a8c",
+    "docs/qa/live-keyboard-5173.png": "fc86fcd149b6517ede94626215bf4b0d4c06f19cdd753d77ea98eab3fe31f994",
+    "docs/qa/long-asset-metadata-320.png": "6606485f9cfc8c8d7090a6126ea010ddf8f2726f0fce5e074d2d71f465c3c430",
+    "docs/qa/missing-safety-warning.png": "274555680656c836436f9fb6a767687716d2e8845b4b22dade07bed2e0366220",
+    "docs/qa/observations.json": "704c4c8597e68cf631669c5df33d724a247188d91ee6eb5c68d279db3f0730f1",
+    "docs/qa/repaired-observations.json": "e29d4c6c9d11b57c38f31629ac260235c4ba19fb4ec5cbb6f867b51f0123a110",
+    "frontend/playwright.config.ts": "63edc320ba04e0387868795364d706a7bd0b1cf465bd7731b907428fd5f4b739",
+    "frontend/playwright.qa.config.ts": "595f38c0e9945bfa41473729cd470e212d3da9c3bfbf7ae951bc71b2acaa00a3",
+    "frontend/qa/adversarial.spec.ts": "f5ade63609a770c7dc92e6b039db31cc59b379618096f5a4d05bf26308b921a3",
+    "frontend/qa/verify-live-keyboard.mjs": "cd2f9b14e3d3befc9fb6ca4db52c7f8281b200c30aa93dae4d5122632dcc7ce4",
+    "frontend/src/App.tsx": "d640d4fdc77c9ecb5e2415f09deefc4692f35f3a74097df874d2c4922f62e8c8",
+    "frontend/src/components/results/SuccessResult.tsx": "9784ea7681b12923f91f7a4dab51f9dcb838bb1b60eb02c42acea0b62efb9141",
+    "frontend/src/services/maintenanceApi.ts": "823e696ce1a4ef3ced3147c639ca0358d3d6cffdc01551dddc837323fe6b7ea6",
+    "frontend/src/services/mockBackend.ts": "21746c38f465fa74e2c909c5569d756f5150709b6d0ae34cf932d78c67f7bf3f",
+    "frontend/src/services/responseSchema.ts": "439d094891fe5cf69cbe8470e1a5b08aebd2a61b0834368e704ad222435b3d77",
+    "frontend/src/styles.css": "88dcd331000f967034033c1d857cc609f3d96e79d40ddaf3c78f03d10e5cb91e",
+    "frontend/src/types/maintenance.ts": "19c47e9eb8c179de8bc7fe46b61fdde200086b694a7f1a34b9a0981e0c6d71c2",
+    "frontend/tests/maintenance.spec.ts": "afc6271005302d2fc9b369e5bfb833a833598832e270de9f7d295acc9ce54324"
+  },
+  "ready": {
+    "status": "ready",
+    "model": "saai-sa/ASL-4B-v1",
+    "database_ready": true,
+    "workflow_ready": true,
+    "model_status": {
+      "model": "saai-sa/ASL-4B-v1",
+      "revision": "79e330632b368ad3d4b919085ab1d6ffaf6d8397",
+      "configured_mode": "neural",
+      "mode": "neural_asl_4b_v1",
+      "is_neural_loaded": true,
+      "generation_verified": true,
+      "device": "cpu",
+      "quantization": "Q4_K_M",
+      "last_generation_ms": 21493.63,
+      "error": null,
+      "engine": "llama_cpp"
+    },
+    "rag_ready": true,
+    "rag_status": {
+      "ready": true,
+      "status": "ready",
+      "engine": "faiss_cosine",
+      "embedding_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+      "embedding_revision": "e8f8c211226b894fcb81acc59f3b34ba3efd5f42",
+      "generation": "7bdbb5dea01d48b9a8fa99003605a9c1",
+      "count": 6
+    }
+  },
+  "real_neural_workflow": {
+    "mode": "real local ASL + real embeddings + current API + temporary SQLite/index",
+    "passed": 5,
+    "failed": 0,
+    "cases": [
+      {
+        "case": "grounded_leak",
+        "passed": true,
+        "duration_seconds": 29.29
+      },
+      {
+        "case": "combined_hazards",
+        "passed": true,
+        "duration_seconds": 35.27
+      },
+      {
+        "case": "negated_hazards",
+        "passed": true,
+        "duration_seconds": 17.69
+      },
+      {
+        "case": "clarification_and_choice",
+        "passed": true,
+        "duration_seconds": 40.37
+      },
+      {
+        "case": "arabic_numerals",
+        "passed": true,
+        "duration_seconds": 17.75
+      }
+    ]
+  }
+}

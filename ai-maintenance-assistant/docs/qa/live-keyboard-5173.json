@@ -1,0 +1,24 @@
+{
+  "url": "http://localhost:5173",
+  "passed": true,
+  "source": "live served page",
+  "api": "explicit intercepted fixtures; no real records created",
+  "checks": [
+    "native input",
+    "automatic focus",
+    "Space",
+    "ArrowDown",
+    "ArrowUp",
+    "ArrowLeft",
+    "ArrowRight",
+    "wrapping",
+    "Tab",
+    "Shift+Tab",
+    "confirmed asset"
+  ],
+  "submitted": {
+    "input_type": "asset_selection",
+    "asset_id": "PR-305-01",
+    "step_id": "step-keyboard"
+  }
+}

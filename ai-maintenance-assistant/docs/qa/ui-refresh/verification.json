@@ -1,0 +1,325 @@
+{
+  "project_root": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant",
+  "verified_at": "2026-10-14T04:24:51.246092+00:00",
+  "unique_browser_tests_passed": 48,
+  "regression_tests_passed": 42,
+  "responsive_tests_passed": 6,
+  "strategy": "42 regression cases passed in full run; 6 responsive cases passed after fixing modal Tab wrapping. Raw reports retained.",
+  "raw_reports": [
+    "frontend/test-results/ui-refresh-final-results.json",
+    "frontend/test-results/ui-refresh-responsive-results.json"
+  ],
+  "cases": [
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "a noncritical API safety warning remains visible on a success card"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "inconsistent success plus escalated ticket is rejected by the client contract"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "a critical result with an empty safety warning is rejected"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "HTML and JavaScript in user text render as text without executing"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "losing the response after server commit creates no automatic duplicate"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "reloading a pending clarification preserves a way to continue the saved thread"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "reload restores asset selection and a completed result using reads only"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "reload sees a completion from another tab instead of answering a consumed step"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "restore waits for a busy thread with GET requests without replaying a POST"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "reload recovers a continuation committed before its response was lost"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "extreme but contract-valid asset metadata fits its card at 320px"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "twenty immediate confirmation clicks send one continuation request"
+    },
+    {
+      "passed": true,
+      "file": "qa/adversarial.spec.ts",
+      "title": "missing continuation thread identity is rejected without presenting a follow-up"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "happy path reaches real API and persisted SQLite ticket; actual trace renders in Arabic"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "missing location continues the same persisted workflow"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "multiple clarification rounds keep the form active and preserve thread identity"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "ambiguous asset displays actual rooms and submits the chosen candidate"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "native asset radios support arrows, wrapping, Space and a single tab stop"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "secondary text contrast passes on normal, hovered and selected surfaces"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "critical outcome renders server escalation and safety message"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "asset not found creates no ticket"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "real backend failure is contained and does not invite unsafe POST replay"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "pending submission blocks resetting and duplicates; no invented completed steps"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "client enforces backend input length limits"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "HTTP 404 renders a controlled error without leaking response details"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "HTTP 409 renders a controlled error without leaking response details"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "HTTP 422 renders a controlled error without leaking response details"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "HTTP 500 renders a controlled error without leaking response details"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "malformed response {\"status\":\"success\"} cannot crash rendering"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "malformed response null cannot crash rendering"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "malformed response {\"status\":\"unknown\"} cannot crash rendering"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "nullable backend values and skipped trace steps render safely"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "network loss is controlled and never automatically creates another request"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "mobile viewport retains usable form and no horizontal overflow"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "short desktop viewport can scroll to all presets without losing the composer"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "hazard warning stays visible while waiting for location"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "multi-hazard policy displays accumulated warnings and matches the saved escalation"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "missing SOP displays manual review without invented references"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "critical evidence renders electrical safety only"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "safe error distinguishes rag_unavailable"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "safe error distinguishes model_unavailable"
+    },
+    {
+      "passed": true,
+      "file": "tests/maintenance.spec.ts",
+      "title": "safe error distinguishes invalid_model_output"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "mobile location field reaches the real API and completed ticket opens in an accessible sheet"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "mobile device choice retains native keyboard behavior and trace opens from the completed result"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "details sheet traps focus and tab arrows work without changing the report"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "switching between mobile sheet and desktop summary preserves selected tab and releases scroll lock"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "phone, tablet and desktop layouts fit without horizontal scrolling or clipped form actions"
+    },
+    {
+      "passed": true,
+      "file": "tests/responsive-workspace.spec.ts",
+      "title": "reduced motion preference removes loading animation and logo is available locally"
+    }
+  ],
+  "source_sha256": {
+    "frontend/src/App.tsx": "c9b426a6daeaba9c9a0ca640d9ada5bd03dee06c89e348dbea0ccd762120cd8f",
+    "frontend/src/styles.css": "4c4a0f030b0d33dab8f9d637edbb2d897616f1942ccb003e55e0edf343a22cb7",
+    "frontend/src/components/Icon.tsx": "cad232c19f94daa9644a0bc2baf969947bae46b65d5ed388d9d3be8809e49596",
+    "frontend/src/components/Header.tsx": "33208bbd0d4fb6c1f33f64e18930ad89679263f2baf423e14fe01c80c11fcb5b",
+    "frontend/src/components/EmptyState.tsx": "e7b1d6f5e1a20257ee685b7dabe54c3707ac6342843730eae5b4641dcc47c560",
+    "frontend/src/components/SidePanel.tsx": "5604017d3ca02cb716b003815b9b65e2c5b5ce54b760744ad4751998681a8dc3",
+    "frontend/src/components/TicketCard.tsx": "8e77b430125c691e3601332e1d8589740f8fa47ddc75749336c2ed801e8aa256",
+    "frontend/src/components/MaintenanceRequestForm.tsx": "b749fbf8e74d915e530990af2c9cba562d59586dac89feba2eafed23520316b0",
+    "frontend/src/components/ChatThread.tsx": "4f5665cdf9defea0d197f52ed62df746953e0113095fd13fa1487737316519ee",
+    "frontend/public/logo-white.svg": "4ed301ae0a324e16e03c7fcce5da471c636da28ef5d264b92ee783f670d1f608",
+    "frontend/tests/responsive-workspace.spec.ts": "e593cf9790154fb1eb25e5db132d4d2dbda12ce3f692780b6071d18a4018c1b1"
+  },
+  "backend_application_files_unchanged": true,
+  "build": "passed",
+  "visual_checks": {
+    "url": "http://localhost:5173",
+    "api": "intercepted fixtures; no live maintenance records created",
+    "cases": [
+      {
+        "name": "desktop",
+        "width": 1440,
+        "height": 1060,
+        "geometry": {
+          "viewport": 1440,
+          "content": 1440
+        },
+        "errors": []
+      },
+      {
+        "name": "phone",
+        "width": 390,
+        "height": 844,
+        "geometry": {
+          "viewport": 390,
+          "content": 390
+        },
+        "errors": []
+      },
+      {
+        "name": "small-phone",
+        "width": 320,
+        "height": 760,
+        "geometry": {
+          "viewport": 320,
+          "content": 320
+        },
+        "errors": []
+      },
+      {
+        "name": "tablet",
+        "width": 768,
+        "height": 1024,
+        "geometry": {
+          "viewport": 768,
+          "content": 768
+        },
+        "errors": []
+      },
+      {
+        "name": "laptop",
+        "width": 1024,
+        "height": 768,
+        "geometry": {
+          "viewport": 1024,
+          "content": 1024
+        },
+        "errors": []
+      }
+    ]
+  }
+}

@@ -1,0 +1,56 @@
+{
+  "url": "http://localhost:5173",
+  "api": "intercepted fixtures; no live maintenance records created",
+  "cases": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1060,
+      "geometry": {
+        "viewport": 1440,
+        "content": 1440
+      },
+      "errors": []
+    },
+    {
+      "name": "phone",
+      "width": 390,
+      "height": 844,
+      "geometry": {
+        "viewport": 390,
+        "content": 390
+      },
+      "errors": []
+    },
+    {
+      "name": "small-phone",
+      "width": 320,
+      "height": 760,
+      "geometry": {
+        "viewport": 320,
+        "content": 320
+      },
+      "errors": []
+    },
+    {
+      "name": "tablet",
+      "width": 768,
+      "height": 1024,
+      "geometry": {
+        "viewport": 768,
+        "content": 768
+      },
+      "errors": []
+    },
+    {
+      "name": "laptop",
+      "width": 1024,
+      "height": 768,
+      "geometry": {
+        "viewport": 1024,
+        "content": 1024
+      },
+      "errors": []
+    }
+  ]
+}

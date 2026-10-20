@@ -1,0 +1,17 @@
+{
+  "project_root": "D:\\Disktop\\ai-maintenance-assistant\\ai-maintenance-assistant",
+  "scope": "Only this project directory; no repository-wide pull, reset, checkout, commit or push",
+  "verified_at": "2026-10-14T04:01:33.229161+00:00",
+  "matching_files_normalized": 91,
+  "missing_files": [],
+  "unresolved_code_differences": [],
+  "allowed_document_difference": "QA_AUDIT image links use D: project path",
+  "tested_code_unchanged": true,
+  "previous_validation": {
+    "backend_passed": 154,
+    "browser_passed": 42,
+    "real_neural_workflow_passed": 5,
+    "frontend_build": "passed"
+  },
+  "live_backend_ready": true
+}

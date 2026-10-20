@@ -1,0 +1,1487 @@
+{
+  "date": "2026-10-13",
+  "backend": {
+    "cases": [
+      {
+        "case": "test_api_rejects_empty_and_over_limit_descriptions[empty]",
+        "passed": true
+      },
+      {
+        "case": "test_api_rejects_empty_and_over_limit_descriptions[whitespace]",
+        "passed": true
+      },
+      {
+        "case": "test_api_rejects_empty_and_over_limit_descriptions[over-ui-limit]",
+        "passed": true
+      },
+      {
+        "case": "test_api_rejects_empty_and_over_limit_clarifications[whitespace]",
+        "passed": true
+      },
+      {
+        "case": "test_api_rejects_empty_and_over_limit_clarifications[over-ui-limit]",
+        "passed": true
+      },
+      {
+        "case": "test_replaying_old_answer_does_not_consume_a_new_question",
+        "passed": true
+      },
+      {
+        "case": "test_asset_is_still_valid_at_ticket_commit[moved]",
+        "passed": true
+      },
+      {
+        "case": "test_asset_is_still_valid_at_ticket_commit[inactive]",
+        "passed": true
+      },
+      {
+        "case": "test_asset_is_still_valid_at_ticket_commit[changed-type]",
+        "passed": true
+      },
+      {
+        "case": "test_asset_is_still_valid_at_ticket_commit[deleted]",
+        "passed": true
+      },
+      {
+        "case": "test_room_matching_is_invariant_under_supported_numerals[\\u063a\\u0631\\u0641\\u0629 301]",
+        "passed": true
+      },
+      {
+        "case": "test_room_matching_is_invariant_under_supported_numerals[\\u063a\\u0631\\u0641\\u0629 \\u0663\\u0660\\u0661]",
+        "passed": true
+      },
+      {
+        "case": "test_room_matching_is_invariant_under_supported_numerals[\\u063a\\u0631\\u0641\\u0629 \\u06f3\\u06f0\\u06f1]",
+        "passed": true
+      },
+      {
+        "case": "test_room_matching_is_invariant_under_supported_numerals[\\u063a\\u0631\\u0641\\u0629\\xa0301]",
+        "passed": true
+      },
+      {
+        "case": "test_room_matching_is_invariant_under_supported_numerals[\\u063a\\u0631\\u0641\\u0629 \\uff13\\uff10\\uff11]",
+        "passed": true
+      },
+      {
+        "case": "test_twenty_competing_asset_choices_have_one_consistent_winner",
+        "passed": true
+      },
+      {
+        "case": "test_twelve_independent_reports_do_not_share_state_or_tickets",
+        "passed": true
+      },
+      {
+        "case": "test_explicit_heuristic_mode_detects_both_smoke_and_electrical_risk",
+        "passed": true
+      },
+      {
+        "case": "test_explicit_heuristic_mode_does_not_turn_negated_smoke_into_danger",
+        "passed": true
+      },
+      {
+        "case": "test_noncritical_flood_warning_is_present_in_real_api_output",
+        "passed": true
+      },
+      {
+        "case": "test_sql_metacharacters_cannot_modify_assets",
+        "passed": true
+      },
+      {
+        "case": "test_unknown_or_invalid_json_payload_is_rejected_before_workflow",
+        "passed": true
+      },
+      {
+        "case": "test_simultaneous_continuations_create_one_ticket_and_reject_replay[False]",
+        "passed": true
+      },
+      {
+        "case": "test_simultaneous_continuations_create_one_ticket_and_reject_replay[True]",
+        "passed": true
+      },
+      {
+        "case": "test_independent_conversations_can_resume_concurrently",
+        "passed": true
+      },
+      {
+        "case": "test_another_process_cannot_resume_locked_conversation_and_crash_releases_lock",
+        "passed": true
+      },
+      {
+        "case": "test_ticket_idempotency_across_processes_restart_and_new_report",
+        "passed": true
+      },
+      {
+        "case": "test_migration_preserves_historical_duplicates_and_reserves_the_operation",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[create-graph]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[create-read_after]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[create-invoke]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[continue-graph]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[continue-read_before]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[continue-read_after]",
+        "passed": true
+      },
+      {
+        "case": "test_workflow_failures_always_return_safe_correlated_errors[continue-invoke]",
+        "passed": true
+      },
+      {
+        "case": "test_unknown_thread_keeps_404",
+        "passed": true
+      },
+      {
+        "case": "test_checkpoint_write_retry_reuses_already_saved_ticket",
+        "passed": true
+      },
+      {
+        "case": "test_local_cpu_requests_schema_and_disables_thinking",
+        "passed": true
+      },
+      {
+        "case": "test_truncated_cpu_response_is_rejected",
+        "passed": true
+      },
+      {
+        "case": "test_cpu_service_failure_never_returns_heuristic",
+        "passed": true
+      },
+      {
+        "case": "test_exited_model_process_clears_readiness",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0645\\u0627 \\u064a\\u0628\\u0631\\u062f\\u060c \\u0645\\u0627 \\u0641\\u064a\\u0647 \\u062f\\u062e\\u0627\\u0646 \\u0648\\u0644\\u0627 \\u0631\\u064a\\u062d\\u0629 \\u062d\\u0631\\u064a\\u0642 \\u0648\\u0644\\u0627 \\u062a\\u0633\\u0631\\u064a\\u0628-expected0]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0645\\u0627 \\u064a\\u0628\\u0631\\u062f\\u060c \\u0644\\u0627 \\u064a\\u0648\\u062c\\u062f \\u062f\\u062e\\u0627\\u0646-expected1]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0645\\u0627 \\u064a\\u0628\\u0631\\u062f\\u060c \\u0628\\u062f\\u0648\\u0646 \\u062f\\u062e\\u0627\\u0646-expected2]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0644\\u0627 \\u064a\\u0639\\u0645\\u0644\\u060c \\u0645\\u0627 \\u0641\\u064a\\u0647 \\u062f\\u062e\\u0627\\u0646 \\u0644\\u0643\\u0646 \\u0641\\u064a\\u0647 \\u0634\\u0631\\u0627\\u0631-expected3]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0644\\u0627 \\u064a\\u0639\\u0645\\u0644 \\u0648\\u0641\\u064a\\u0647 \\u062f\\u062e\\u0627\\u0646\\u060c \\u0648\\u0644\\u0627 \\u062a\\u0633\\u0631\\u064a\\u0628-expected4]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_handles_local_negation_and_independent_hazards[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u064a\\u0647\\u0631\\u0628 \\u0645\\u0648\\u064a\\u0629 \\u0639\\u0644\\u0649 \\u0627\\u0644\\u0644\\u0648\\u062d\\u0629 \\u0627\\u0644\\u0643\\u0647\\u0631\\u0628\\u0627\\u0626\\u064a\\u0629 \\u0648\\u0641\\u064a\\u0647 \\u062f\\u062e\\u0627\\u0646-expected5]",
+        "passed": true
+      },
+      {
+        "case": "test_demo_extraction_does_not_invent_an_unspecified_symptom",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_output_is_not_empty_facts[NOT VALID JSON]",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_output_is_not_empty_facts[{}]",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_output_is_not_empty_facts[{\"asset_type\":42}]",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_output_is_not_empty_facts[null]",
+        "passed": true
+      },
+      {
+        "case": "test_fenced_json_supported_but_explanations_rejected",
+        "passed": true
+      },
+      {
+        "case": "test_neural_load_failure_never_calls_heuristic",
+        "passed": true
+      },
+      {
+        "case": "test_readiness_reports_explicit_heuristic_mode",
+        "passed": true
+      },
+      {
+        "case": "test_neural_not_loaded_returns_503_and_safe_request_error",
+        "passed": true
+      },
+      {
+        "case": "test_loaded_without_generation_is_not_ready",
+        "passed": true
+      },
+      {
+        "case": "test_malformed_extraction_is_safe_http_error_without_ticket",
+        "passed": true
+      },
+      {
+        "case": "test_policies",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards0]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards1]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards2]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards3]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards4]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards5]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards6]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards7]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards8]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards9]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards10]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards11]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards12]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards13]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards14]",
+        "passed": true
+      },
+      {
+        "case": "test_every_hazard_set_has_one_warning_regardless_of_order_or_duplicates[hazards15]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_aggregation_keeps_existing_priority_rules[air_conditioner]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_aggregation_keeps_existing_priority_rules[printer]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_aggregation_keeps_existing_priority_rules[plumbing]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_aggregation_keeps_existing_priority_rules[electrical]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_aggregation_keeps_existing_priority_rules[other]",
+        "passed": true
+      },
+      {
+        "case": "test_chunks_have_substantive_content_and_known_sources",
+        "passed": true
+      },
+      {
+        "case": "test_irrelevant_symptoms_and_devices_are_excluded",
+        "passed": true
+      },
+      {
+        "case": "test_safety_retrieval_never_returns_normal_repair_instructions",
+        "passed": true
+      },
+      {
+        "case": "test_threshold_and_limits_are_effective",
+        "passed": true
+      },
+      {
+        "case": "test_source_changes_mark_index_stale_and_readiness_503",
+        "passed": true
+      },
+      {
+        "case": "test_corrupt_index_is_not_used",
+        "passed": true
+      },
+      {
+        "case": "test_failed_rebuild_keeps_previous_index",
+        "passed": true
+      },
+      {
+        "case": "test_unavailable_index_never_claims_ready",
+        "passed": true
+      },
+      {
+        "case": "test_no_evidence_skips_llm_and_reports_manual_review",
+        "passed": true
+      },
+      {
+        "case": "test_bad_or_incomplete_selection_is_rejected[ids0]",
+        "passed": true
+      },
+      {
+        "case": "test_bad_or_incomplete_selection_is_rejected[ids1]",
+        "passed": true
+      },
+      {
+        "case": "test_bad_or_incomplete_selection_is_rejected[ids2]",
+        "passed": true
+      },
+      {
+        "case": "test_recommendation_is_exact_evidence_and_persisted",
+        "passed": true
+      },
+      {
+        "case": "test_no_sop_still_creates_real_manual_review_ticket",
+        "passed": true
+      },
+      {
+        "case": "test_existing_ticket_migration_preserves_old_data",
+        "passed": true
+      },
+      {
+        "case": "test_ticket_cannot_claim_grounding_without_evidence",
+        "passed": true
+      },
+      {
+        "case": "test_database_connection_closes_and_releases_windows_file",
+        "passed": true
+      },
+      {
+        "case": "test_unknown_location_never_tickets[\\u063a\\u0631\\u0641\\u0629 999]",
+        "passed": true
+      },
+      {
+        "case": "test_unknown_location_never_tickets[\\u0645\\u0643\\u062a\\u0628 204]",
+        "passed": true
+      },
+      {
+        "case": "test_room_is_exact_and_arabic_digits_supported",
+        "passed": true
+      },
+      {
+        "case": "test_selection_candidates_reach_api[\\u0627\\u0644\\u062f\\u0648\\u0631 \\u0627\\u0644\\u062b\\u0627\\u0644\\u062b-expected0]",
+        "passed": true
+      },
+      {
+        "case": "test_selection_candidates_reach_api[301 \\u0648305-expected1]",
+        "passed": true
+      },
+      {
+        "case": "test_building_disambiguation_and_explicit_filters",
+        "passed": true
+      },
+      {
+        "case": "test_ambiguous_location_requires_clarification",
+        "passed": true
+      },
+      {
+        "case": "test_clarification_uses_new_location",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_choice_preserves_waiting_and_can_recover[DOES-NOT-EXIST]",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_choice_preserves_waiting_and_can_recover[AC-B12-02]",
+        "passed": true
+      },
+      {
+        "case": "test_invalid_choice_preserves_waiting_and_can_recover[]",
+        "passed": true
+      },
+      {
+        "case": "test_wrong_continuation_type_does_not_resume",
+        "passed": true
+      },
+      {
+        "case": "test_unregistered_type_stops_without_generic_asset[\\u0627\\u0644\\u0633\\u062e\\u0627\\u0646 \\u0645\\u0627 \\u064a\\u0634\\u062a\\u063a\\u0644]",
+        "passed": true
+      },
+      {
+        "case": "test_unregistered_type_stops_without_generic_asset[\\u0627\\u0644\\u0645\\u063a\\u0633\\u0644\\u0629 \\u0641\\u064a\\u0647\\u0627 \\u062a\\u0633\\u0631\\u064a\\u0628 \\u0645\\u0648\\u064a\\u0629]",
+        "passed": true
+      },
+      {
+        "case": "test_saved_ticket_matches_response[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0644\\u0627 \\u064a\\u0639\\u0645\\u0644-created]",
+        "passed": true
+      },
+      {
+        "case": "test_saved_ticket_matches_response[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u064a\\u0647\\u0631\\u0628 \\u0645\\u0648\\u064a\\u0629 \\u0639\\u0644\\u0649 \\u0627\\u0644\\u0644\\u0648\\u062d\\u0629 \\u0627\\u0644\\u0643\\u0647\\u0631\\u0628\\u0627\\u0626\\u064a\\u0629-escalated]",
+        "passed": true
+      },
+      {
+        "case": "test_hazard_warning_precedes_clarification[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u064a\\u0647\\u0631\\u0628 \\u0645\\u0648\\u064a\\u0629 \\u0639\\u0644\\u0649 \\u0627\\u0644\\u0644\\u0648\\u062d\\u0629 \\u0627\\u0644\\u0643\\u0647\\u0631\\u0628\\u0627\\u0626\\u064a\\u0629-electrical_risk]",
+        "passed": true
+      },
+      {
+        "case": "test_hazard_warning_precedes_clarification[\\u0627\\u0644\\u0645\\u0643\\u064a\\u0641 \\u0641\\u064a\\u0647 \\u062f\\u062e\\u0627\\u0646-fire_or_smoke]",
+        "passed": true
+      },
+      {
+        "case": "test_warning_survives_selection_and_no_match",
+        "passed": true
+      },
+      {
+        "case": "test_metadata_and_out_of_service",
+        "passed": true
+      },
+      {
+        "case": "test_formatter_never_invents_success[state0]",
+        "passed": true
+      },
+      {
+        "case": "test_formatter_never_invents_success[state1]",
+        "passed": true
+      },
+      {
+        "case": "test_formatter_never_invents_success[state2]",
+        "passed": true
+      },
+      {
+        "case": "test_formatter_never_invents_success[state3]",
+        "passed": true
+      },
+      {
+        "case": "test_save_failure_never_reports_success",
+        "passed": true
+      },
+      {
+        "case": "test_out_of_service_candidate_stops_without_ticket",
+        "passed": true
+      },
+      {
+        "case": "test_no_warning_for_nonhazard_and_null_metadata",
+        "passed": true
+      },
+      {
+        "case": "test_warning_survives_location_clarification",
+        "passed": true
+      },
+      {
+        "case": "test_read_only_restore_keeps_step_after_restart_and_recovers_final_result",
+        "passed": true
+      },
+      {
+        "case": "test_step_identity_changes_only_on_a_valid_consumed_answer",
+        "passed": true
+      },
+      {
+        "case": "test_state_read_is_safe_when_missing_busy_or_checkpoint_fails",
+        "passed": true
+      },
+      {
+        "case": "test_asset_snapshot_cannot_change_during_inference[room-999]",
+        "passed": true
+      },
+      {
+        "case": "test_asset_snapshot_cannot_change_during_inference[floor-9]",
+        "passed": true
+      },
+      {
+        "case": "test_asset_snapshot_cannot_change_during_inference[building-B]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[fire_or_smoke-electrical_risk]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[fire_or_smoke-exposed_wires]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[fire_or_smoke-flooding]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[electrical_risk-fire_or_smoke]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[electrical_risk-exposed_wires]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[electrical_risk-flooding]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[exposed_wires-fire_or_smoke]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[exposed_wires-electrical_risk]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[exposed_wires-flooding]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[flooding-fire_or_smoke]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[flooding-electrical_risk]",
+        "passed": true
+      },
+      {
+        "case": "test_new_hazard_on_continuation_is_accumulated_ordered_and_persisted[flooding-exposed_wires]",
+        "passed": true
+      },
+      {
+        "case": "test_all_warnings_are_present_before_asset_resolution[None-needs_information]",
+        "passed": true
+      },
+      {
+        "case": "test_all_warnings_are_present_before_asset_resolution[\\u0627\\u0644\\u062f\\u0648\\u0631 \\u0627\\u0644\\u062b\\u0627\\u0644\\u062b-needs_asset_selection]",
+        "passed": true
+      },
+      {
+        "case": "test_all_warnings_are_present_before_asset_resolution[999-asset_not_found]",
+        "passed": true
+      },
+      {
+        "case": "test_trace_measures_work_and_preserves_previous_steps",
+        "passed": true
+      },
+      {
+        "case": "test_resume_excludes_waiting_time_and_retains_saved_trace",
+        "passed": true
+      },
+      {
+        "case": "test_selection_rechecks_asset_after_wait[UPDATE assets SET status='inactive' WHERE asset_id='PR-305-01']",
+        "passed": true
+      },
+      {
+        "case": "test_selection_rechecks_asset_after_wait[UPDATE assets SET room='999',floor='9' WHERE asset_id='PR-305-01']",
+        "passed": true
+      },
+      {
+        "case": "test_selection_rechecks_asset_after_wait[DELETE FROM assets WHERE asset_id='PR-305-01']",
+        "passed": true
+      },
+      {
+        "case": "test_interrupted_workflow_survives_rebuilt_graph",
+        "passed": true
+      },
+      {
+        "case": "test_missing_symptoms_gets_relevant_question",
+        "passed": true
+      },
+      {
+        "case": "test_safe_error_code_distinguishes_missing_rag",
+        "passed": true
+      }
+    ],
+    "passed": 154,
+    "total": 154
+  },
+  "browser": {
+    "stats": {
+      "startTime": "2026-10-13T15:24:57.462Z",
+      "duration": 130844.64099999999,
+      "expected": 42,
+      "skipped": 0,
+      "unexpected": 0,
+      "flaky": 0
+    },
+    "cases": [
+      {
+        "case": "a noncritical API safety warning remains visible on a success card",
+        "status": "passed",
+        "duration_ms": 2018
+      },
+      {
+        "case": "inconsistent success plus escalated ticket is rejected by the client contract",
+        "status": "passed",
+        "duration_ms": 2125
+      },
+      {
+        "case": "a critical result with an empty safety warning is rejected",
+        "status": "passed",
+        "duration_ms": 2018
+      },
+      {
+        "case": "HTML and JavaScript in user text render as text without executing",
+        "status": "passed",
+        "duration_ms": 2741
+      },
+      {
+        "case": "losing the response after server commit creates no automatic duplicate",
+        "status": "passed",
+        "duration_ms": 3951
+      },
+      {
+        "case": "reloading a pending clarification preserves a way to continue the saved thread",
+        "status": "passed",
+        "duration_ms": 4711
+      },
+      {
+        "case": "reload restores asset selection and a completed result using reads only",
+        "status": "passed",
+        "duration_ms": 3280
+      },
+      {
+        "case": "reload sees a completion from another tab instead of answering a consumed step",
+        "status": "passed",
+        "duration_ms": 2009
+      },
+      {
+        "case": "restore waits for a busy thread with GET requests without replaying a POST",
+        "status": "passed",
+        "duration_ms": 3628
+      },
+      {
+        "case": "reload recovers a continuation committed before its response was lost",
+        "status": "passed",
+        "duration_ms": 4888
+      },
+      {
+        "case": "extreme but contract-valid asset metadata fits its card at 320px",
+        "status": "passed",
+        "duration_ms": 2086
+      },
+      {
+        "case": "twenty immediate confirmation clicks send one continuation request",
+        "status": "passed",
+        "duration_ms": 3143
+      },
+      {
+        "case": "missing continuation thread identity is rejected without presenting a follow-up",
+        "status": "passed",
+        "duration_ms": 4797
+      },
+      {
+        "case": "happy path reaches real API and persisted SQLite ticket; actual trace renders in Arabic",
+        "status": "passed",
+        "duration_ms": 2189
+      },
+      {
+        "case": "missing location continues the same persisted workflow",
+        "status": "passed",
+        "duration_ms": 4070
+      },
+      {
+        "case": "multiple clarification rounds keep the form active and preserve thread identity",
+        "status": "passed",
+        "duration_ms": 7590
+      },
+      {
+        "case": "ambiguous asset displays actual rooms and submits the chosen candidate",
+        "status": "passed",
+        "duration_ms": 3736
+      },
+      {
+        "case": "native asset radios support arrows, wrapping, Space and a single tab stop",
+        "status": "passed",
+        "duration_ms": 2752
+      },
+      {
+        "case": "secondary text contrast passes on normal, hovered and selected surfaces",
+        "status": "passed",
+        "duration_ms": 2764
+      },
+      {
+        "case": "critical outcome renders server escalation and safety message",
+        "status": "passed",
+        "duration_ms": 2357
+      },
+      {
+        "case": "asset not found creates no ticket",
+        "status": "passed",
+        "duration_ms": 2187
+      },
+      {
+        "case": "real backend failure is contained and does not invite unsafe POST replay",
+        "status": "passed",
+        "duration_ms": 2287
+      },
+      {
+        "case": "pending submission blocks resetting and duplicates; no invented completed steps",
+        "status": "passed",
+        "duration_ms": 2152
+      },
+      {
+        "case": "client enforces backend input length limits",
+        "status": "passed",
+        "duration_ms": 2086
+      },
+      {
+        "case": "HTTP 404 renders a controlled error without leaking response details",
+        "status": "passed",
+        "duration_ms": 2214
+      },
+      {
+        "case": "HTTP 409 renders a controlled error without leaking response details",
+        "status": "passed",
+        "duration_ms": 2236
+      },
+      {
+        "case": "HTTP 422 renders a controlled error without leaking response details",
+        "status": "passed",
+        "duration_ms": 2207
+      },
+      {
+        "case": "HTTP 500 renders a controlled error without leaking response details",
+        "status": "passed",
+        "duration_ms": 2295
+      },
+      {
+        "case": "malformed response {\"status\":\"success\"} cannot crash rendering",
+        "status": "passed",
+        "duration_ms": 2167
+      },
+      {
+        "case": "malformed response null cannot crash rendering",
+        "status": "passed",
+        "duration_ms": 2518
+      },
+      {
+        "case": "malformed response {\"status\":\"unknown\"} cannot crash rendering",
+        "status": "passed",
+        "duration_ms": 2637
+      },
+      {
+        "case": "nullable backend values and skipped trace steps render safely",
+        "status": "passed",
+        "duration_ms": 3075
+      },
+      {
+        "case": "network loss is controlled and never automatically creates another request",
+        "status": "passed",
+        "duration_ms": 2494
+      },
+      {
+        "case": "mobile viewport retains usable form and no horizontal overflow",
+        "status": "passed",
+        "duration_ms": 2003
+      },
+      {
+        "case": "short desktop viewport can scroll to all presets without losing the composer",
+        "status": "passed",
+        "duration_ms": 3270
+      },
+      {
+        "case": "hazard warning stays visible while waiting for location",
+        "status": "passed",
+        "duration_ms": 2482
+      },
+      {
+        "case": "multi-hazard policy displays accumulated warnings and matches the saved escalation",
+        "status": "passed",
+        "duration_ms": 2727
+      },
+      {
+        "case": "missing SOP displays manual review without invented references",
+        "status": "passed",
+        "duration_ms": 2599
+      },
+      {
+        "case": "critical evidence renders electrical safety only",
+        "status": "passed",
+        "duration_ms": 3122
+      },
+      {
+        "case": "safe error distinguishes rag_unavailable",
+        "status": "passed",
+        "duration_ms": 2294
+      },
+      {
+        "case": "safe error distinguishes model_unavailable",
+        "status": "passed",
+        "duration_ms": 2120
+      },
+      {
+        "case": "safe error distinguishes invalid_model_output",
+        "status": "passed",
+        "duration_ms": 2133
+      }
+    ]
+  },
+  "neural_workflow": {
+    "mode": "real local ASL + real embeddings + current API + temporary SQLite/index",
+    "rag_min_score": 0.35,
+    "cases": [
+      {
+        "case": "grounded_leak",
+        "requests": [
+          {
+            "payload": {
+              "description": "المكيف يهرب موية",
+              "location": "B12"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-2BFBA6",
+              "thread_id": "th_1cb427840eee4b78ac9856ec6e231e31",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: air_conditioner | الموقع: B12",
+                  "duration_ms": 11787.78
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: HIGH",
+                  "duration_ms": 0.018
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.008
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على الأصل: AC-B12-02",
+                  "duration_ms": 4.892
+                },
+                {
+                  "step": "استرجاع إجراءات الصيانة (RAG)",
+                  "status": "completed",
+                  "details": "تم استرجاع 1 إجراءات مناسبة من مراجع المشروع",
+                  "duration_ms": 40.099
+                },
+                {
+                  "step": "صياغة التوصية الفنية",
+                  "status": "completed",
+                  "details": "التوصية من نص الإجراءات المسترجعة",
+                  "duration_ms": 10029.484
+                },
+                {
+                  "step": "إنشاء تذكرة الصيانة",
+                  "status": "completed",
+                  "details": "رقم التذكرة: TICK-B79C9E (created)",
+                  "duration_ms": 10.676
+                }
+              ],
+              "status": "success",
+              "ticket": {
+                "ticket_id": "TICK-B79C9E",
+                "status": "created"
+              },
+              "asset": {
+                "asset_id": "AC-B12-02",
+                "asset_type": "air_conditioner",
+                "location": "B12 — مبنى A — الدور 1",
+                "model": "Demo-AC-01",
+                "status": "active"
+              },
+              "analysis": {
+                "category": "HVAC",
+                "priority": "high",
+                "symptoms": [
+                  "water_leak"
+                ],
+                "safety_signals": []
+              },
+              "recommended_action": "تسرب المياه\n- فحص مجرى تصريف مياه التكثف للتأكد من عدم وجود انسداد.\n- فحص صينية التصريف للتأكد من عدم وجود تلف أو امتلاء.",
+              "recommendation_status": "grounded",
+              "evidence": [
+                {
+                  "procedure_id": "air_conditioning:4aaabb97e53a14d5",
+                  "source": "air_conditioning.md",
+                  "section": "تسرب المياه",
+                  "score": 0.608823,
+                  "source_sha256": "c7c159204ee45bf4288d3696ef9074d626f242086d0d5b99926af6fa3b4ecc8e",
+                  "index_generation": "aa2e6df65c474e0a9489f68016960ad6"
+                }
+              ]
+            }
+          }
+        ],
+        "passed": true,
+        "duration_seconds": 21.92
+      },
+      {
+        "case": "combined_hazards",
+        "requests": [
+          {
+            "payload": {
+              "description": "المكيف يهرب موية على اللوحة الكهربائية وفيه دخان",
+              "location": "B12"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-72A999",
+              "thread_id": "th_474fa607c94342c5baf7164069ab19c7",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: air_conditioner | الموقع: B12",
+                  "duration_ms": 18528.404
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: CRITICAL",
+                  "duration_ms": 0.023
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.01
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على الأصل: AC-B12-02",
+                  "duration_ms": 4.123
+                },
+                {
+                  "step": "استرجاع إجراءات الصيانة (RAG)",
+                  "status": "completed",
+                  "details": "تم استرجاع 1 إجراءات مناسبة من مراجع المشروع",
+                  "duration_ms": 60.139
+                },
+                {
+                  "step": "صياغة التوصية الفنية",
+                  "status": "completed",
+                  "details": "التوصية من نص الإجراءات المسترجعة",
+                  "duration_ms": 11463.572
+                },
+                {
+                  "step": "إنشاء تذكرة الصيانة",
+                  "status": "completed",
+                  "details": "رقم التذكرة: TICK-3CE69C (escalated)",
+                  "duration_ms": 9.549
+                }
+              ],
+              "safety_message": "تحذير عالي الخطورة: يرجى إخلاء المنطقة فوراً واستخدام طفاية الحريق المناسبة إن لزم الأمر. تحذير أمان: يُمنع لمس الجهاز المبتل، يرجى فصل القاطع الكهربائي فوراً والابتعاد عن موقع التسريب.",
+              "status": "critical",
+              "ticket": {
+                "ticket_id": "TICK-3CE69C",
+                "status": "escalated"
+              },
+              "asset": {
+                "asset_id": "AC-B12-02",
+                "asset_type": "air_conditioner",
+                "location": "B12 — مبنى A — الدور 1",
+                "model": "Demo-AC-01",
+                "status": "active"
+              },
+              "analysis": {
+                "category": "HVAC",
+                "priority": "critical",
+                "symptoms": [
+                  "water_leak"
+                ],
+                "safety_signals": [
+                  "electrical_risk",
+                  "fire_or_smoke"
+                ]
+              },
+              "recommended_action": "تعرض المعدات الكهربائية للمياه\n- إبعاد الأشخاص عن المنطقة المتأثرة.\n- عدم لمس معدات كهربائية مبللة أو مكشوفة.\n- تصعيد الحالة إلى فريق الصيانة المختص عند وجود خطر كهربائي.\n\nما فيه إجراء موثق يغطي كل الأعراض أو المخاطر المذكورة؛ يلزم استكمال الفحص بواسطة فريق الصيانة.",
+              "recommendation_status": "partial",
+              "evidence": [
+                {
+                  "procedure_id": "electrical:f4f6183649452167",
+                  "source": "electrical.md",
+                  "section": "تعرض المعدات الكهربائية للمياه",
+                  "score": 0.758637,
+                  "source_sha256": "a28fb71f528cabb374507ab161d816f095d38ddca9bc600483d7128e64cc3aae",
+                  "index_generation": "aa2e6df65c474e0a9489f68016960ad6"
+                }
+              ]
+            }
+          }
+        ],
+        "passed": true,
+        "duration_seconds": 30.1
+      },
+      {
+        "case": "negated_hazards",
+        "requests": [
+          {
+            "payload": {
+              "description": "المكيف ما يبرد، ما فيه دخان ولا ريحة حريق ولا تسريب",
+              "location": "B12"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-8CC023",
+              "thread_id": "th_1b12e8bc2fa140e2b39dd376d04a19b3",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: air_conditioner | الموقع: B12",
+                  "duration_ms": 17308.033
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.023
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.006
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على الأصل: AC-B12-02",
+                  "duration_ms": 5.645
+                },
+                {
+                  "step": "استرجاع إجراءات الصيانة (RAG)",
+                  "status": "completed",
+                  "details": "لا يوجد إجراء موثق مناسب؛ يلزم الفحص الميداني",
+                  "duration_ms": 21.289
+                },
+                {
+                  "step": "صياغة التوصية الفنية",
+                  "status": "completed",
+                  "details": "لا توجد توصية إصلاح موثقة؛ يُحوّل للفحص الميداني",
+                  "duration_ms": 0.04
+                },
+                {
+                  "step": "إنشاء تذكرة الصيانة",
+                  "status": "completed",
+                  "details": "رقم التذكرة: TICK-02F56C (created)",
+                  "duration_ms": 13.142
+                }
+              ],
+              "status": "success",
+              "ticket": {
+                "ticket_id": "TICK-02F56C",
+                "status": "created"
+              },
+              "asset": {
+                "asset_id": "AC-B12-02",
+                "asset_type": "air_conditioner",
+                "location": "B12 — مبنى A — الدور 1",
+                "model": "Demo-AC-01",
+                "status": "active"
+              },
+              "analysis": {
+                "category": "HVAC",
+                "priority": "medium",
+                "symptoms": [
+                  "low_cooling"
+                ],
+                "safety_signals": []
+              },
+              "recommended_action": "ما فيه إجراء صيانة موثق مناسب لهذا العطل ضمن مراجع المشروع الحالية. يُحوّل البلاغ لفريق الصيانة للفحص الميداني.",
+              "recommendation_status": "manual_review",
+              "evidence": []
+            }
+          }
+        ],
+        "passed": true,
+        "duration_seconds": 17.39
+      },
+      {
+        "case": "clarification_and_choice",
+        "requests": [
+          {
+            "payload": {
+              "description": "الطابعة تعلق الورق"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-AFB442",
+              "thread_id": "th_f1bbd30e97044a529c3a9b5df07d4a8f",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: غير محدد",
+                  "duration_ms": 16473.759
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.013
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "بيانات ناقصة: location",
+                  "duration_ms": 0.008
+                }
+              ],
+              "status": "needs_information",
+              "missing_fields": [
+                "location"
+              ],
+              "question": "يرجى تحديد الموقع أو الغرفة لإكمال البلاغ.",
+              "step_id": "69691d557ab41ecfa316f65169e85e9c"
+            }
+          },
+          {
+            "payload": {
+              "input_type": "text",
+              "text": "الدور الثالث",
+              "step_id": "69691d557ab41ecfa316f65169e85e9c"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-906677",
+              "thread_id": "th_f1bbd30e97044a529c3a9b5df07d4a8f",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: غير محدد",
+                  "duration_ms": 16473.759
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.013
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "بيانات ناقصة: location",
+                  "duration_ms": 0.008
+                },
+                {
+                  "step": "استلام التوضيح",
+                  "status": "completed",
+                  "details": "تم استلام إجابة المتابعة",
+                  "duration_ms": 0.047
+                },
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: الدور الثالث",
+                  "duration_ms": 15145.037
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.017
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.005
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على 3 أجهزة مطابقة",
+                  "duration_ms": 4.27
+                }
+              ],
+              "status": "needs_asset_selection",
+              "message": "تم العثور على أكثر من جهاز في هذا الموقع، يرجى اختيار الجهاز المتعطل.",
+              "assets": [
+                {
+                  "asset_id": "PR-301-01",
+                  "asset_type": "printer",
+                  "location": "301 — مبنى A — الدور 3",
+                  "model": "Demo-Printer-A",
+                  "status": "active"
+                },
+                {
+                  "asset_id": "PR-305-01",
+                  "asset_type": "printer",
+                  "location": "305 — مبنى A — الدور 3",
+                  "model": "Demo-Printer-B",
+                  "status": "active"
+                },
+                {
+                  "asset_id": "PR-310-01",
+                  "asset_type": "printer",
+                  "location": "310 — مبنى A — الدور 3",
+                  "model": "Demo-Printer-C",
+                  "status": "active"
+                }
+              ],
+              "step_id": "11b161c7ba056bf481e9e3575dc4b2ca"
+            }
+          },
+          {
+            "payload": {
+              "input_type": "asset_selection",
+              "asset_id": "PR-305-01",
+              "step_id": "11b161c7ba056bf481e9e3575dc4b2ca"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-A7229F",
+              "thread_id": "th_f1bbd30e97044a529c3a9b5df07d4a8f",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: غير محدد",
+                  "duration_ms": 16473.759
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.013
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "بيانات ناقصة: location",
+                  "duration_ms": 0.008
+                },
+                {
+                  "step": "استلام التوضيح",
+                  "status": "completed",
+                  "details": "تم استلام إجابة المتابعة",
+                  "duration_ms": 0.047
+                },
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: الدور الثالث",
+                  "duration_ms": 15145.037
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.017
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.005
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على 3 أجهزة مطابقة",
+                  "duration_ms": 4.27
+                },
+                {
+                  "step": "تأكيد اختيار الجهاز",
+                  "status": "completed",
+                  "details": "تم اختيار الجهاز: PR-305-01",
+                  "duration_ms": 3.239
+                },
+                {
+                  "step": "استرجاع إجراءات الصيانة (RAG)",
+                  "status": "completed",
+                  "details": "تم استرجاع 1 إجراءات مناسبة من مراجع المشروع",
+                  "duration_ms": 40.497
+                },
+                {
+                  "step": "صياغة التوصية الفنية",
+                  "status": "completed",
+                  "details": "التوصية من نص الإجراءات المسترجعة",
+                  "duration_ms": 7721.414
+                },
+                {
+                  "step": "إنشاء تذكرة الصيانة",
+                  "status": "completed",
+                  "details": "رقم التذكرة: TICK-15636E (created)",
+                  "duration_ms": 8.179
+                }
+              ],
+              "status": "success",
+              "ticket": {
+                "ticket_id": "TICK-15636E",
+                "status": "created"
+              },
+              "asset": {
+                "asset_id": "PR-305-01",
+                "asset_type": "printer",
+                "location": "305 — مبنى A — الدور 3",
+                "model": "Demo-Printer-B",
+                "status": "active"
+              },
+              "analysis": {
+                "category": "IT Equipment",
+                "priority": "medium",
+                "symptoms": [
+                  "paper_jam"
+                ],
+                "safety_signals": []
+              },
+              "recommended_action": "انحشار الورق\n- إيقاف الطباعة مؤقتًا.\n- فحص مسار الورق وإزالة الورق العالق وفق تعليمات الجهاز.",
+              "recommendation_status": "grounded",
+              "evidence": [
+                {
+                  "procedure_id": "printers:686f064063f90754",
+                  "source": "printers.md",
+                  "section": "انحشار الورق",
+                  "score": 0.74735,
+                  "source_sha256": "0a05e8348d79af1d67e05e6b7d966815e235d212f2e0955f9f724ef0f71c453b",
+                  "index_generation": "aa2e6df65c474e0a9489f68016960ad6"
+                }
+              ]
+            }
+          }
+        ],
+        "passed": true,
+        "duration_seconds": 39.49
+      },
+      {
+        "case": "arabic_numerals",
+        "requests": [
+          {
+            "payload": {
+              "description": "الطابعة تعلق الورق في غرفة ٣٠١"
+            },
+            "http": 200,
+            "body": {
+              "request_id": "REQ-D23E8F",
+              "thread_id": "th_4f7b3a9614234ad6a5867f3650ccc76a",
+              "trace": [
+                {
+                  "step": "استخراج بيانات البلاغ",
+                  "status": "completed",
+                  "details": "الجهاز: printer | الموقع: room_301",
+                  "duration_ms": 11216.465
+                },
+                {
+                  "step": "تقييم قواعد الأمان والأولوية",
+                  "status": "completed",
+                  "details": "الأولوية: MEDIUM",
+                  "duration_ms": 0.018
+                },
+                {
+                  "step": "التحقق من اكتمال البيانات",
+                  "status": "completed",
+                  "details": "جميع البيانات الأساسية مكتملة",
+                  "duration_ms": 0.007
+                },
+                {
+                  "step": "مطابقة الأصل",
+                  "status": "completed",
+                  "details": "تم العثور على الأصل: PR-301-01",
+                  "duration_ms": 3.506
+                },
+                {
+                  "step": "استرجاع إجراءات الصيانة (RAG)",
+                  "status": "completed",
+                  "details": "تم استرجاع 1 إجراءات مناسبة من مراجع المشروع",
+                  "duration_ms": 47.896
+                },
+                {
+                  "step": "صياغة التوصية الفنية",
+                  "status": "completed",
+                  "details": "التوصية من نص الإجراءات المسترجعة",
+                  "duration_ms": 2337.434
+                },
+                {
+                  "step": "إنشاء تذكرة الصيانة",
+                  "status": "completed",
+                  "details": "رقم التذكرة: TICK-8BFB2F (created)",
+                  "duration_ms": 10.797
+                }
+              ],
+              "status": "success",
+              "ticket": {
+                "ticket_id": "TICK-8BFB2F",
+                "status": "created"
+              },
+              "asset": {
+                "asset_id": "PR-301-01",
+                "asset_type": "printer",
+                "location": "301 — مبنى A — الدور 3",
+                "model": "Demo-Printer-A",
+                "status": "active"
+              },
+              "analysis": {
+                "category": "IT Equipment",
+                "priority": "medium",
+                "symptoms": [
+                  "paper_jam"
+                ],
+                "safety_signals": []
+              },
+              "recommended_action": "انحشار الورق\n- إيقاف الطباعة مؤقتًا.\n- فحص مسار الورق وإزالة الورق العالق وفق تعليمات الجهاز.",
+              "recommendation_status": "grounded",
+              "evidence": [
+                {
+                  "procedure_id": "printers:686f064063f90754",
+                  "source": "printers.md",
+                  "section": "انحشار الورق",
+                  "score": 0.74735,
+                  "source_sha256": "0a05e8348d79af1d67e05e6b7d966815e235d212f2e0955f9f724ef0f71c453b",
+                  "index_generation": "aa2e6df65c474e0a9489f68016960ad6"
+                }
+              ]
+            }
+          }
+        ],
+        "passed": true,
+        "duration_seconds": 13.65
+      }
+    ]
+  },
+  "frontend_build": "passed",
+  "qa_spec_typescript": "passed",
+  "source_sha256": {
+    "backend/app/main.py": "c84392de44fd95bee2f88670cf11caa96879c478a6fe8c31023ae406bf24202e",
+    "backend/app/schemas.py": "3410f1b0d567f11c647a4e10a81c43f1b6debc84ebd67c195b022a816df534b4",
+    "backend/app/db/database.py": "88b9753e7a214e59581df4f80341c7e3557dd5eb2d3d8bbd1da380be7b01cdaf",
+    "backend/app/policies/rules.py": "983100aaefad8a8866d02b2a4ad5a250f0499bfb67cf5fae2228e7d1afd568c8",
+    "backend/app/workflow/nodes.py": "a49e714cb26b17eb6664599ed90f4da655cdc6657b74f9009ac76e411efd0e9b",
+    "backend/app/llm/client.py": "16d05d66eecc8f87c097d1d9c23b48ad8d04550a7d63cf5d1e10b07e95a3ca2a",
+    "frontend/src/App.tsx": "d640d4fdc77c9ecb5e2415f09deefc4692f35f3a74097df874d2c4922f62e8c8",
+    "frontend/src/services/maintenanceApi.ts": "823e696ce1a4ef3ced3147c639ca0358d3d6cffdc01551dddc837323fe6b7ea6",
+    "frontend/src/services/responseSchema.ts": "439d094891fe5cf69cbe8470e1a5b08aebd2a61b0834368e704ad222435b3d77",
+    "frontend/src/components/results/SuccessResult.tsx": "9784ea7681b12923f91f7a4dab51f9dcb838bb1b60eb02c42acea0b62efb9141",
+    "frontend/src/styles.css": "88dcd331000f967034033c1d857cc609f3d96e79d40ddaf3c78f03d10e5cb91e"
+  }
+}
