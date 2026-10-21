@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from contextlib import asynccontextmanager
 from uuid import uuid4
 
 from fastapi import FastAPI, Request
@@ -14,10 +15,23 @@ from .schemas import ApiErrorDetail, ApiErrorResponse
 
 settings = get_settings()
 
+
+@asynccontextmanager
+async def lifespan(_: FastAPI):
+    # Optional Phoenix tracing (Day 4): a no-op unless FURSAH_PHOENIX_ENABLED=true, so it is
+    # safe to call here. LangGraph/LangChain spans are auto-instrumented when enabled.
+    if settings.phoenix_enabled:
+        from .infrastructure.observability import setup_observability
+
+        setup_observability()
+    yield
+
+
 app = FastAPI(
     title="FURSAH API",
     version="1.0.0-starter",
     description="Applied AI Engineering Bootcamp starter backend.",
+    lifespan=lifespan,
 )
 
 app.add_middleware(

@@ -11,10 +11,10 @@ from fastapi.responses import JSONResponse
 from .infrastructure.dependencies import AppDependencies, get_app_dependencies
 from .infrastructure.errors import ErrorCode, FursahError, RecordNotFound
 from .schemas import (
-    ApiErrorResponse, DiscoveryRequest, DiscoveryResponse, DiscoveryStatus,
+    ApiErrorResponse, BrowseResponse, DiscoveryRequest, DiscoveryResponse, DiscoveryStatus,
     HealthResponse, OpportunityDetailsResponse, ReadinessResponse,
 )
-from .workflow import discover
+from .workflow import discover, discover_all
 
 router = APIRouter()
 
@@ -127,6 +127,22 @@ async def discover_route(
         ],
     )
     return result
+
+
+@router.post("/api/v1/discover/all", response_model=BrowseResponse)
+async def discover_all_route(
+    body: DiscoveryRequest,
+    request: Request,
+    offset: int = 0,
+    limit: int = 3,
+    deps: AppDependencies = Depends(get_app_dependencies),
+):
+    """Additive 'show more / show all' endpoint — does not change the /discover contract."""
+    deps = replace(deps, tracer=Tracer(deps.settings.trace_jsonl_path),
+                   evaluation_time=deps.settings.resolve_evaluation_time())
+    request_id = body.request_id or (request.headers.get("x-request-id") or "").strip()[:120] or str(uuid4())
+    body = body.model_copy(update={"request_id": request_id})
+    return await discover_all(body, deps, offset=offset, limit=limit)
 
 
 @router.get(

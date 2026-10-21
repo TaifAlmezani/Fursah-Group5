@@ -7,5 +7,8 @@ httpx==0.28.1
 # Day 4 tracing helper (infrastructure/observability.py): the small API only, a no-op
 # until Phoenix is set up. The Phoenix stack itself is in requirements-observability.txt.
 opentelemetry-api==1.44.0
-
-# Add dependencies for your chosen implementation yourself. No agent framework is required by the shell.
+sqlalchemy==2.1.5
+# --- Our implementation ---
+# Discovery orchestration graph. Pulls langchain-core/langsmith transitively; httpx (above)
+# is reused directly for the optional OpenRouter client, so no extra model SDK is needed.
+langgraph==0.2.76

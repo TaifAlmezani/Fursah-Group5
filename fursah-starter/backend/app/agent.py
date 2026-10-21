@@ -1,24 +1,204 @@
-# Age and study stage are not collected by this profile. Keep eligibility uncertain
-# when these requirements cannot be established; do not request nonexistent form fields.
-# Learner guidance: Cities, majors, interests and skills arrive as displayed values. Extract
-# restrictions from query text separately from saved constraints. Do not invent
-# opportunity IDs or confirmed eligibility. Respect the public response contract
-# regardless of your chosen framework.
+# Optional LLM layer (OpenRouter, OpenAI-compatible) used ONLY where a model genuinely helps:
+#   1. interpret_query(): turn free Arabic text into retrieval hints (keywords / city / type).
+#   2. write_reason():     phrase a short Arabic justification for an ALREADY-selected,
+#                          evidence-grounded recommendation.
+#
+# The model never selects opportunities, invents IDs, or decides eligibility — those are
+# deterministic and source-grounded in the workflow. Every call is bounded (timeout +
+# retries) and has a deterministic fallback, so the whole application works with NO API key.
+# That keeps the demo reliable and matches the project rule: "an LLM does not automatically
+# gain access to your dataset."
 from __future__ import annotations
 
-from .internal import AgentContext, AgentResult
+import json
+from typing import Any
+
+import httpx
+
+from .infrastructure.dependencies import AppDependencies, ModelClientConfig
+from .schemas import SearchConstraints, UserProfile
+
+# Vocabulary the model is allowed to emit back, so a hallucinated type/mode can never leak
+# into retrieval. Anything outside these sets is dropped.
+_KNOWN_TYPES = {"workshop", "course", "internship", "competition", "volunteering", "event"}
+_KNOWN_MODES = {"in_person", "online", "hybrid"}
 
 
-async def run_agent(context: AgentContext, deps) -> AgentResult:
-    """Optional location for your model client, prompts and agent implementation.
+class LlmClient:
+    """Thin async wrapper over an OpenRouter / OpenAI-compatible chat-completions endpoint."""
 
-    AgentContext and AgentResult are example internal types, not the public API.
-    TODO: supply retrieved evidence or tools that access your store; the model
-    cannot search local data merely because the files exist. Use resolved
-    constraints consistently and bound calls, retries and execution time.
-    A schema-valid plan can still omit explicit user constraints: check meaning,
-    not only types. Return a controlled failure after bounded recovery attempts.
+    def __init__(self, config: ModelClientConfig) -> None:
+        self._config = config
+        base = config.base_url.rstrip("/")
+        # Tolerate a base_url given with or without the /v1 suffix.
+        self._url = base + ("/chat/completions" if base.endswith("/v1") else "/v1/chat/completions")
+
+    @property
+    def model_name(self) -> str:
+        return self._config.model_name
+
+    async def complete(
+        self, system: str, user: str, *, json_mode: bool, max_tokens: int = 400
+    ) -> str | None:
+        """Return the raw assistant message text, or None on any transport/model failure."""
+        headers = {"Content-Type": "application/json"}
+        if self._config.api_key:
+            headers["Authorization"] = f"Bearer {self._config.api_key}"
+        # Optional OpenRouter attribution headers (harmless on other OpenAI-compatible hosts).
+        headers.setdefault("X-Title", "FURSAH")
+
+        payload: dict[str, Any] = {
+            "model": self._config.model_name,
+            "messages": [
+                {"role": "system", "content": system},
+                {"role": "user", "content": user},
+            ],
+            "temperature": 0,
+            "max_tokens": max_tokens,
+        }
+        if json_mode:
+            payload["response_format"] = {"type": "json_object"}
+
+        attempts = max(1, self._config.max_retries + 1)
+        timeout = httpx.Timeout(self._config.timeout_seconds)
+        for attempt in range(attempts):
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(self._url, headers=headers, json=payload)
+                response.raise_for_status()
+                data = response.json()
+                return data["choices"][0]["message"]["content"]
+            except Exception:
+                if attempt + 1 >= attempts:
+                    return None
+        return None
+
+
+def build_llm_client(deps: AppDependencies) -> LlmClient | None:
+    """Create a client only when a live model is actually configured; otherwise None."""
+    if deps.model_config is None:
+        return None
+    return LlmClient(deps.model_config)
+
+
+def _loads(text: str | None) -> dict[str, Any]:
+    if not text:
+        return {}
+    text = text.strip()
+    # Some models wrap JSON in a ```json fence; strip it defensively.
+    if text.startswith("```"):
+        text = text.strip("`")
+        text = text[text.find("{"):]
+    try:
+        value = json.loads(text)
+    except ValueError:
+        return {}
+    return value if isinstance(value, dict) else {}
+
+
+async def interpret_query(
+    client: LlmClient, query: str, profile: UserProfile, constraints: SearchConstraints
+) -> dict[str, Any]:
+    """Ask the model for retrieval hints from the Arabic query. Returns {} on any problem.
+
+    Output is strictly validated against the known vocabulary before use, so the model can
+    only ever *narrow or enrich* deterministic retrieval, never introduce unsupported values.
     """
-    raise NotImplementedError(
-        "TODO(FURSAH-LEARNER): connect your chosen model or agent implementation"
+    system = (
+        "أنت مساعد يحوّل طلب بحث عربي إلى مرشّحات بحث منظّمة فقط. "
+        "أعد JSON بالمفاتيح: keywords (قائمة كلمات مفتاحية عربية أو إنجليزية)، "
+        "city (اسم مدينة واحد أو null)، "
+        "opportunity_types (من: workshop, course, internship, competition, volunteering, event)، "
+        "delivery_modes (من: in_person, online, hybrid). "
+        "لا تخترع قيمًا غير موجودة في النص. استخدم null أو قوائم فارغة عند عدم الذكر."
     )
+    user = f"الطلب: {query}\nالمدينة المحفوظة في الملف: {profile.city or 'غير محددة'}"
+    raw = await client.complete(system, user, json_mode=True, max_tokens=300)
+    data = _loads(raw)
+    if not data:
+        return {}
+
+    hints: dict[str, Any] = {}
+    keywords = data.get("keywords")
+    if isinstance(keywords, list):
+        hints["keywords"] = [k.strip() for k in keywords if isinstance(k, str) and k.strip()][:12]
+    city = data.get("city")
+    if isinstance(city, str) and city.strip():
+        hints["city"] = city.strip()
+    types = data.get("opportunity_types")
+    if isinstance(types, list):
+        hints["opportunity_types"] = [t for t in types if t in _KNOWN_TYPES]
+    modes = data.get("delivery_modes")
+    if isinstance(modes, list):
+        hints["delivery_modes"] = [m for m in modes if m in _KNOWN_MODES]
+    return hints
+
+
+async def rerank(
+    client: LlmClient, query: str, profile: UserProfile, candidates: list[dict[str, Any]]
+) -> list[str] | None:
+    """Semantic re-rank: the model orders the RETRIEVED candidates by relevance to the query.
+
+    This is the RAG payoff — the model understands Arabic morphology/synonyms that keyword
+    scoring cannot. It returns only IDs drawn from the given pool (best first, empty if none
+    are relevant); any id not in the pool is dropped, so it can never invent a recommendation.
+    Returns None on transport/parse failure, and the caller then keeps the deterministic order.
+    """
+    items = [
+        {
+            "id": record.get("opportunity_id"),
+            "title": record.get("title"),
+            "topic": record.get("topic"),
+            "type": record.get("opportunity_type"),
+            "location": record.get("location"),
+            "mode": record.get("delivery_mode"),
+        }
+        for record in candidates
+    ]
+    system = (
+        "أنت تعيد ترتيب فرص تدريبية حسب مدى ملاءمتها لطلب المستخدم. "
+        "أعد JSON بالشكل {\"ranked_ids\": [\"...\"]} يحوي فقط معرّفات (id) من القائمة المعطاة، "
+        "من الأنسب إلى الأقل، واحذف غير المناسب. "
+        "أعد قائمة فارغة إذا لم تكن أي فرصة مناسبة. لا تخترع أي معرّف غير موجود في القائمة."
+    )
+    user = (
+        f"الطلب: {query}\n"
+        f"اهتمامات المستخدم: {', '.join(profile.interests) or 'غير محددة'}\n"
+        f"الفرص:\n{json.dumps(items, ensure_ascii=False)}"
+    )
+    raw = await client.complete(system, user, json_mode=True, max_tokens=600)
+    data = _loads(raw)
+    ranked = data.get("ranked_ids")
+    if not isinstance(ranked, list):
+        return None
+
+    valid = {str(record.get("opportunity_id")) for record in candidates}
+    seen: set[str] = set()
+    ordered: list[str] = []
+    for identifier in ranked:
+        text = str(identifier).strip() if identifier is not None else ""
+        if text in valid and text not in seen:  # pool-only: invented ids are silently dropped
+            seen.add(text)
+            ordered.append(text)
+    return ordered
+
+
+async def write_reason(client: LlmClient, query: str, record: dict[str, Any]) -> str | None:
+    """Phrase a one-sentence Arabic reason for a pre-selected, grounded recommendation."""
+    facts = {
+        "title": record.get("title"),
+        "type": record.get("opportunity_type"),
+        "location": record.get("location"),
+        "delivery_mode": record.get("delivery_mode"),
+        "topics": record.get("topics"),
+    }
+    system = (
+        "اكتب جملة عربية واحدة قصيرة تشرح لماذا تناسب هذه الفرصة طلب المستخدم، "
+        "بالاعتماد فقط على الحقائق المعطاة. لا تؤكد الأهلية ولا تضف معلومات غير موجودة."
+    )
+    user = f"طلب المستخدم: {query}\nحقائق الفرصة: {json.dumps(facts, ensure_ascii=False)}"
+    raw = await client.complete(system, user, json_mode=False, max_tokens=160)
+    if not raw:
+        return None
+    reason = raw.strip().strip('"').replace("\n", " ")
+    return reason or None

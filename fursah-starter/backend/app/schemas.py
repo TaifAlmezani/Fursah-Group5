@@ -107,6 +107,18 @@ class Recommendation(BaseModel):
     next_action: str | None = None
 
 
+class ExecutionStep(BaseModel):
+    """One recorded step of the agent run: a workflow stage, tool call, or model call.
+
+    Additive and optional; it carries no decision data, only a trace of what ran.
+    """
+    seq: int = Field(ge=1)
+    step: str
+    component: str          # agent | repository | openrouter | workflow
+    detail: str
+    elapsed_ms: float = Field(ge=0)
+
+
 class DiscoveryResponse(BaseModel):
     request_id: NonBlank
     status: DiscoveryStatus
@@ -117,6 +129,10 @@ class DiscoveryResponse(BaseModel):
     interpreted_filters: list[str] = Field(default_factory=list)
     missing_explanations: list[str] = Field(default_factory=list)
     constraint_conflict: bool = False
+    # True when no exact match existed and the closest opportunities are shown instead.
+    approximate: bool = False
+    # Optional agent run log (stages, tools, model calls). Older clients ignore it.
+    execution_log: list[ExecutionStep] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def enforce_outcome_contract(self) -> "DiscoveryResponse":
@@ -143,6 +159,22 @@ class DiscoveryResponse(BaseModel):
             if not self.error_code:
                 raise ValueError("error requires error_code")
         return self
+
+
+class BrowseResponse(BaseModel):
+    """Paginated full ranking for the 'show more / show all' flow.
+
+    Additive endpoint model: it does NOT replace DiscoveryResponse and is not capped at 3.
+    """
+    request_id: NonBlank
+    status: DiscoveryStatus
+    message: str
+    total: int = Field(ge=0)
+    offset: int = Field(ge=0)
+    limit: int = Field(gt=0)
+    recommendations: list[Recommendation] = Field(default_factory=list)
+    interpreted_filters: list[str] = Field(default_factory=list)
+    approximate: bool = False
 
 
 class ApiErrorDetail(BaseModel):

@@ -65,6 +65,14 @@ export interface Recommendation {
   next_action?: string | null;
 }
 
+export interface ExecutionStep {
+  seq: number;
+  step: string;
+  component: string;
+  detail: string;
+  elapsed_ms: number;
+}
+
 export interface DiscoveryResponse {
   request_id: string;
   status: DiscoveryStatus;
@@ -72,9 +80,24 @@ export interface DiscoveryResponse {
   interpreted_filters?: string[];
   missing_explanations?: string[];
   constraint_conflict?: boolean;
+  approximate?: boolean;               // closest shown because no exact match
+  execution_log?: ExecutionStep[];     // what the agent did (stages, tools, model calls)
   recommendations: Recommendation[]; // max 3 rendered
   missing_fields: string[];          // e.g. "profile.city"
   error_code: string | null;
+}
+
+/** Paginated full ranking for "show more / show all". */
+export interface BrowseResponse {
+  request_id: string;
+  status: DiscoveryStatus;
+  message: string;
+  total: number;
+  offset: number;
+  limit: number;
+  recommendations: Recommendation[];
+  interpreted_filters?: string[];
+  approximate?: boolean;
 }
 
 /* ---------- Opportunity details ---------- */

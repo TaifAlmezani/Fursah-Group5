@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Constraints, DiscoveryResponse, Profile, Recommendation, ViewState } from './types';
-import { discover } from './api/client';
+import { discover, discoverAll } from './api/client';
 import { loadInitialProfile, persistProfile } from './profile/profile';
 import Header from './components/Header';
 import { ProfileEditor, ProfileSummary } from './profile/ProfilePanel';
@@ -17,16 +17,26 @@ export default function App() {
   const [res, setRes] = useState<DiscoveryResponse | null>(null);
   const [editing, setEditing] = useState(false);
   const [details, setDetails] = useState<Recommendation | null>(null);
+  const [more, setMore] = useState<Recommendation[]>([]);      // extra recs from show-more
+  const [browseTotal, setBrowseTotal] = useState<number | null>(null);
+  const [browseLoading, setBrowseLoading] = useState(false);
   const queryRef = useRef<HTMLTextAreaElement>(null);
   const seq = useRef(0);
   const pending = useRef(false);
   const controller = useRef<AbortController | null>(null);
   const submitted = useRef<{ query: string; profile: Profile; constraints: Constraints } | null>(null);
+  const lastResolution = useRef<'profile' | 'query' | undefined>(undefined);
   useEffect(() => () => { ++seq.current; controller.current?.abort(); }, []);
 
   useEffect(() => persistProfile(profile, constraints), [profile, constraints]);
 
   const missing = view === 'needs_info' ? res?.missing_fields ?? [] : [];
+
+  function resetBrowse() {
+    setMore([]);
+    setBrowseTotal(null);
+    setBrowseLoading(false);
+  }
 
   function invalidateSearch() {
     ++seq.current;
@@ -36,6 +46,27 @@ export default function App() {
     setRes(null);
     setDetails(null);
     setView('initial');
+    resetBrowse();
+  }
+
+  // "Show more / show all": page through the full ranking for the same submitted search.
+  async function loadMore(all: boolean) {
+    if (!submitted.current || browseLoading) return;
+    const shownCount = (res?.recommendations.length ?? 0) + more.length;
+    setBrowseLoading(true);
+    try {
+      const page = await discoverAll(
+        { request_id: null, ...submitted.current, constraint_resolution: lastResolution.current },
+        shownCount, all ? 1000 : 3,
+      );
+      if (!page) return;
+      const seen = new Set([...(res?.recommendations ?? []), ...more].map(r => r.opportunity_id));
+      const fresh = page.recommendations.filter(r => !seen.has(r.opportunity_id));
+      setMore(m => [...m, ...fresh]);
+      setBrowseTotal(page.total);
+    } finally {
+      setBrowseLoading(false);
+    }
   }
 
   async function runDiscover(p: Profile = profile, c: Constraints = constraints, resolution?: 'profile' | 'query') {
@@ -46,6 +77,8 @@ export default function App() {
     if (!q) { queryRef.current?.focus(); return; }
     // Results and resolution actions share the exact submitted input snapshot.
     submitted.current = structuredClone(snapshot);
+    lastResolution.current = resolution;
+    resetBrowse();
     const id = ++seq.current;
     controller.current?.abort();
     controller.current = new AbortController();
@@ -82,6 +115,11 @@ export default function App() {
         <SearchResults
           view={view}
           res={res}
+          more={more}
+          browseTotal={browseTotal}
+          browseLoading={browseLoading}
+          onShowMore={() => loadMore(false)}
+          onShowAll={() => loadMore(true)}
           onEditProfile={() => setEditing(true)}
           onResolve={choice => runDiscover(profile, constraints, choice)}
           onRetry={() => runDiscover()}

@@ -5,6 +5,11 @@ import OpportunityCard from './OpportunityCard';
 interface Props {
   view: ViewState;
   res: DiscoveryResponse | null;
+  more?: Recommendation[];
+  browseTotal?: number | null;
+  browseLoading?: boolean;
+  onShowMore?: () => void;
+  onShowAll?: () => void;
   onResolve: (choice: 'profile' | 'query') => void;
   onEditProfile: () => void;
   onRetry: () => void;
@@ -13,7 +18,9 @@ interface Props {
 }
 
 /** Renders exactly one of: initial / loading / ok / needs_info / no_match / error. */
-export default function SearchResults({ view, res, onEditProfile, onRetry, onFocusQuery, onOpenDetails, onResolve }: Props) {
+export default function SearchResults({ view, res, more = [], browseTotal, browseLoading, onShowMore, onShowAll, onEditProfile, onRetry, onFocusQuery, onOpenDetails, onResolve }: Props) {
+  const shown = (res?.recommendations.length ?? 0) + more.length;
+  const hasMore = view === 'ok' && (browseTotal == null || shown < browseTotal);
   return (
     <section className="results" aria-live="polite" aria-label="النتائج">
       {res?.interpreted_filters?.length ? <div className="notice"><strong>فهمنا بحثك بهذه القيود:</strong><ul>{res.interpreted_filters.map(f => <li key={f}>{f}</li>)}</ul></div> : null}
@@ -41,9 +48,19 @@ export default function SearchResults({ view, res, onEditProfile, onRetry, onFoc
             <p>{summaryText(res.recommendations.length)}</p>
           </div>
           {res.message && <p className="notice">{res.message}</p>}
-          {res.recommendations.map(r => (
+          {[...res.recommendations, ...more].map(r => (
             <OpportunityCard key={r.opportunity_id} rec={r} onOpen={() => onOpenDetails(r)} />
           ))}
+          {(hasMore || browseLoading) && (
+            <div className="state__actions">
+              <button className="btn btn--outline" onClick={onShowMore} disabled={browseLoading}>
+                {browseLoading ? 'جارٍ التحميل…' : 'عرض المزيد'}
+              </button>
+              <button className="btn btn--quiet" onClick={onShowAll} disabled={browseLoading}>
+                عرض كل الفرص{browseTotal != null ? ` (${browseTotal})` : ''}
+              </button>
+            </div>
+          )}
         </>
       )}
 
@@ -96,6 +113,20 @@ export default function SearchResults({ view, res, onEditProfile, onRetry, onFoc
           </div>
         </div>
       )}
+
+      {res?.execution_log?.length ? (
+        <details className="notice" style={{ marginTop: '1rem' }}>
+          <summary><strong>سجل عمل الوكيل ({res.execution_log.length} خطوة)</strong></summary>
+          <ol className="list list--tight" style={{ marginTop: '.5rem' }}>
+            {res.execution_log.map(s => (
+              <li key={s.seq}>
+                <strong>{s.step}</strong> · <span className="muted">{s.component}</span> — {s.detail}
+                <span className="mono muted" dir="ltr"> · {s.elapsed_ms} ms</span>
+              </li>
+            ))}
+          </ol>
+        </details>
+      ) : null}
     </section>
   );
 }

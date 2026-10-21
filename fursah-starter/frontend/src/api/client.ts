@@ -1,11 +1,12 @@
 /** The only HTTP boundary. Field names match backend/app/schemas.py; no fallback data. */
 import { validateConstraints } from '../profile/profile';
 import { fieldLabel } from '../labels';
-import type { ApiResult, DiscoveryRequest, DiscoveryResponse, OpportunityDetails, Recommendation } from '../types';
+import type { ApiResult, BrowseResponse, DiscoveryRequest, DiscoveryResponse, OpportunityDetails, Recommendation } from '../types';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8000').replace(/\/+$/, '');
 const TIMEOUT_MS = 100_000;
 const DISCOVER_PATH = '/api/v1/discover';
+const DISCOVER_ALL_PATH = '/api/v1/discover/all';
 const DETAILS_PATH = '/api/v1/opportunities/';
 
 type JsonObject = Record<string, unknown>;
@@ -113,6 +114,25 @@ export async function discover(request: DiscoveryRequest, signal?: AbortSignal):
     return failure(requestId, code, response.status === 422 ? validationMessage(response.body) : '');
   }
   return validDiscovery(response.body) ? response.body : failure(requestId, 'FURSAH_BAD_RESPONSE');
+}
+
+function validBrowse(value: unknown): value is BrowseResponse {
+  return object(value) && nonempty(value.request_id) && typeof value.message === 'string'
+    && typeof value.total === 'number' && typeof value.offset === 'number' && typeof value.limit === 'number'
+    && Array.isArray(value.recommendations) && value.recommendations.every(validRecommendation);
+}
+
+/** Fetch a page of the full ranking for "show more / show all". Returns null on any failure. */
+export async function discoverAll(
+  request: DiscoveryRequest, offset: number, limit: number, signal?: AbortSignal,
+): Promise<BrowseResponse | null> {
+  const requestId = request.request_id || globalThis.crypto?.randomUUID?.() || `req-${Date.now()}`;
+  const response = await send(`${DISCOVER_ALL_PATH}?offset=${offset}&limit=${limit}`, {
+    method: 'POST', signal,
+    body: JSON.stringify({ ...request, query: request.query.trim(), request_id: requestId }),
+  });
+  if (response.kind !== 'http' || response.status < 200 || response.status >= 300) return null;
+  return validBrowse(response.body) ? response.body : null;
 }
 
 export async function getOpportunity(id: string): Promise<ApiResult<OpportunityDetails>> {
