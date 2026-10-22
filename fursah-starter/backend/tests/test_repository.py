@@ -57,10 +57,11 @@ def test_search_excludes_cancelled(repo):
     assert all(r.get("registration_statement") != "cancelled" for r in results)
 
 
-def test_search_budget_keeps_free_and_unknown(repo):
-    """Free-only budget keeps cost<=0 and unknown-cost (uncertain), never paid opportunities."""
+def test_search_budget_excludes_unknown_and_over(repo):
+    """A stated budget keeps only known fees within it: over-budget AND unknown-fee are out."""
     results = repo.search(SearchCriteria(max_budget_sar=0.0), limit=900)
-    assert all(r.get("cost_sar") in (None, 0.0) for r in results)
+    assert results
+    assert all(isinstance(r.get("cost_sar"), (int, float)) and r["cost_sar"] <= 0.0 for r in results)
 
 
 def test_application_status_mapping(repo):

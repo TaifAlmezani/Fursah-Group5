@@ -20,9 +20,14 @@ DEADLINE_EXPIRED = "expired"     # the deadline day has fully passed
 
 
 def search_opportunities(
-    criteria: SearchCriteria, repo: OpportunityRepository, limit: int = 60
+    criteria: SearchCriteria, repo: OpportunityRepository, limit: int = 500
 ) -> list[dict[str, Any]]:
-    """Return candidate records matching the resolved hard constraints (evidence, not rankings)."""
+    """Return candidate records matching the resolved hard constraints (evidence, not rankings).
+
+    The limit is high so that every constraint-matching opportunity is retrieved; relevance
+    ranking happens afterwards in Python. A low limit silently dropped acceptable opportunities
+    before they could be ranked.
+    """
     return repo.search(criteria, limit=limit)
 
 

@@ -56,18 +56,17 @@ def test_city_conflict_resolved_by_query(deps):
     assert not r.constraint_conflict
 
 
-def test_skill_gap_needs_info(deps):
-    """A top match requiring a skill + unanswered skills (null) asks before recommending."""
+def test_skill_requirement_does_not_force_needs_info(deps):
+    """Day 4: a skill-requiring opportunity is recommended with uncertain eligibility (the skill
+    shown as a caveat) — the app does not switch to needs_info on the shared-case profile."""
     record = next(
         r for r in deps.repository._load_records()
         if r.get("required_skills") and r.get("registration_statement") != "cancelled"
     )
-    topic = record["title"]
-    r = _run(deps, query=f"{topic}", profile={"skills": None})
-    # It should either ask about skills, or (if a different opportunity ranks top) still be valid.
-    if r.status is DiscoveryStatus.NEEDS_INFO:
-        assert r.missing_fields == ["profile.skills"]
-        assert r.missing_explanations
+    r = _run(deps, query=record["title"], profile={"skills": None})
+    assert r.status is not DiscoveryStatus.NEEDS_INFO
+    for rec in r.recommendations:
+        assert rec.eligibility_status.value == "uncertain"
 
 
 def test_no_match(deps):

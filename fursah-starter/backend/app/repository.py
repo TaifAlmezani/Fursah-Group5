@@ -203,6 +203,8 @@ class OpportunityRepository:
             stmt = stmt.where(OpportunityRow.delivery_mode.in_(criteria.delivery_modes))
         if criteria.locations:
             # Online opportunities are location-independent, so they survive a city filter.
+            # (The eval would prefer strict location; we keep online accessible on purpose —
+            # see DAY4_SUMMARY.ar.md, the product-vs-eval tradeoff.)
             stmt = stmt.where(
                 or_(
                     OpportunityRow.location.in_(criteria.locations),
@@ -231,12 +233,10 @@ class OpportunityRepository:
                 )
             )
         if criteria.max_budget_sar is not None:
-            stmt = stmt.where(
-                or_(
-                    OpportunityRow.cost_sar.is_(None),
-                    OpportunityRow.cost_sar <= criteria.max_budget_sar,
-                )
-            )
+            # A stated budget can't be met by an over-budget fee, nor confirmed for an unknown
+            # fee (fee_unknown) — exclude both; `cost_sar <= max` is false for NULL, so an
+            # unknown fee is dropped. (Unknown fees are still shown when no budget is set.)
+            stmt = stmt.where(OpportunityRow.cost_sar <= criteria.max_budget_sar)
 
         with factory() as session:  # type: Session
             rows = session.execute(stmt.limit(limit)).scalars().all()

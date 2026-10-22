@@ -1,0 +1,35 @@
+# Build context = fursah-starter/. The image only needs backend/requirements.txt,
+# backend/app, and data/ (see Dockerfile). Everything else is excluded so the context
+# stays small and no secret or generated file is ever sent to the builder.
+
+# Secrets and local env
+**/.env
+**/.env.*
+!**/.env.example
+
+# Generated SQLite store (the image rebuilds it from data/prepared/opportunities.json)
+**/*.db
+
+# Python caches / virtualenvs
+**/__pycache__/
+**/*.py[cod]
+.venv/
+venv/
+**/.pytest_cache/
+
+# The frontend is deployed separately (Render Static Site), not in this image
+frontend/
+
+# Tests, evals, notebooks, docs — not needed at runtime
+backend/tests/
+backend/evals/
+backend/test_*.py
+backend/conftest.py
+**/.ipynb_checkpoints/
+data/*.ipynb
+data/raw/
+
+# Day-by-day notes and tooling
+day*/
+.git/
+.claude/

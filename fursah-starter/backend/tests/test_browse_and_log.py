@@ -19,14 +19,12 @@ def _req(query, **kw):
     )
 
 
-def test_no_exact_match_falls_back_to_similar(deps):
-    """A query with no exact topic match returns the closest options, not an empty no_match."""
+def test_no_topical_match_is_no_match(deps):
+    """Day 4: a query with no topically-relevant match returns an honest no_match, not
+    off-topic 'closest' recommendations."""
     r = asyncio.run(discover(_req("فرصة في الغوص والرياضات المائية"), deps))
-    assert r.status is DiscoveryStatus.OK
-    assert r.approximate is True
-    assert len(r.recommendations) >= 1
-    # Every closest card is flagged as not an exact match.
-    assert all(any("أقرب خيار" in c for c in rec.caveats) for rec in r.recommendations)
+    assert r.status is DiscoveryStatus.NO_MATCH
+    assert r.recommendations == []
 
 
 def test_impossible_constraints_still_no_match(deps):

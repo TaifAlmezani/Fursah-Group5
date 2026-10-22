@@ -1,0 +1,54 @@
+# Render Blueprint for FURSAH (Group 5).
+# Lives at the repo root. In Render: New > Blueprint, pick this repo, and Render reads
+# this file to create both services. Env vars marked `sync: false` are filled in the
+# dashboard (so no secret lives in git).
+#
+# Two services:
+#   fursah-api  - the FastAPI backend, built from fursah-starter/Dockerfile
+#   fursah-web  - the Vite/React frontend, built to static files
+services:
+  # ---- Backend API (Docker) ----
+  - type: web
+    name: fursah-api
+    runtime: docker
+    rootDir: fursah-starter
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    plan: free
+    region: frankfurt          # closest Render region to Saudi Arabia
+    healthCheckPath: /health
+    envVars:
+      # Set to the deployed frontend origin once fursah-web has a URL, e.g.
+      #   https://fursah-web.onrender.com   (comma-separate several, no trailing slash)
+      - key: FURSAH_ALLOWED_ORIGINS
+        sync: false
+      # Pin the classroom evaluation instant if the demo needs it; else leave unset.
+      - key: FURSAH_EVALUATION_TIME
+        sync: false
+      # --- Optional LLM (OpenRouter/Qwen). Leave all blank to run keyless/deterministic. ---
+      - key: FURSAH_MODEL_PROVIDER
+        sync: false
+      - key: FURSAH_MODEL_BASE_URL
+        sync: false
+      - key: FURSAH_MODEL_NAME
+        sync: false
+      - key: FURSAH_MODEL_API_KEY   # secret: enter in the dashboard, never in git
+        sync: false
+
+  # ---- Frontend (static site) ----
+  - type: web
+    name: fursah-web
+    runtime: static
+    rootDir: fursah-starter/frontend
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      # The backend origin, e.g. https://fursah-api.onrender.com (no trailing slash).
+      # Baked into the bundle at build time, so changing it needs a redeploy.
+      - key: VITE_API_BASE_URL
+        sync: false
+    # Single-page app: send every path to index.html so client routing works.
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html

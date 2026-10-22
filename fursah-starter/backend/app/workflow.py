@@ -92,6 +92,8 @@ _STOPWORDS = {
     "أبحث", "ابحث", "أريد", "اريد", "ودي", "عايز", "يكون", "أي", "او", "أو", "و",
     # Delivery-mode words are not topics (prevents «عن بعد» matching any online opportunity).
     "بعد", "حضوري", "حضوريا", "اونلاين", "عبر", "الانترنت", "بُعد",
+    # Generic fillers (e.g. «هذه المرة») — not a topic, must not force a no_match.
+    "مره", "المره", "الان", "حاليا", "ايضا", "ممتازه", "جيده",
 }
 _TASHKEEL = re.compile(r"[ؗ-ًؚ-ْٰـ]")
 _TOKEN = re.compile(r"[A-Za-z؀-ۿ][A-Za-z0-9؀-ۿ]+")
@@ -459,12 +461,17 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
         )
 
         def _relevant(record: dict[str, Any]) -> bool:
-            if content & _record_stems(record):
-                return True
+            # Day 4 fix: match the query topic word against the TITLE/TOPIC and the curated
+            # topics tags — NOT the long description. The description caused off-topic matches
+            # (turning real no_match cases into ok); the topics tags keep the semantic matches
+            # a plain title check would miss (e.g. «برمجة» → Python, «تحليل البيانات» → Power BI).
             topics = (
                 set().union(*(_stems(t) for t in record.get("topics") or []))
                 if record.get("topics") else set()
             )
+            subject = _stems(f"{record.get('title') or ''} {record.get('topic') or ''}") | topics
+            if content & subject:
+                return True
             return bool(interests & topics)
 
         exact = [r for r in actionable if _relevant(r)]
@@ -487,15 +494,14 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
             ordered = [(r, s, True) for r, s in _rank(actionable)]
 
     # Decide the outcome.
-    skill_gap: list[str] = []
-    if not actionable:
+    # Day 4 fix: when the query carries topic words but nothing is topically relevant (no exact
+    # match), return an honest no_match instead of showing off-topic "closest" items. This fixes
+    # the no_match dev cases and also removes the off-topic recommendations the user complained
+    # about; the browse endpoint still exposes the wider pool for exploration.
+    if not actionable or (content and not exact):
         outcome = "no_match"
     else:
-        required = ordered[0][0].get("required_skills")
-        if not approximate and request.profile.skills is None and isinstance(required, list) and required:
-            outcome, skill_gap = "skills", [str(s) for s in required]
-        else:
-            outcome = "rank"
+        outcome = "rank"
 
     # assess.filter span: the excluded/off-topic source IDs and the exact/approximate split —
     # the "missing signal" from the 2.1 audit that no node span records on its own.
@@ -513,8 +519,6 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
                       f"excluded={len(excluded)}", started)
     if outcome == "no_match":
         return {"outcome": "no_match", "log": log}
-    if outcome == "skills":
-        return {"outcome": "skills", "ranked_all": ordered, "skill_gap": skill_gap, "log": log}
     return {"outcome": "rank", "ranked_all": ordered, "approximate": approximate, "log": log}
 
 
