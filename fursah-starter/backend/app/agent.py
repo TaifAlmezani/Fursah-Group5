@@ -17,6 +17,7 @@ from typing import Any
 import httpx
 
 from .infrastructure.dependencies import AppDependencies, ModelClientConfig
+from .infrastructure.observability import start_span
 from .schemas import SearchConstraints, UserProfile
 
 # Vocabulary the model is allowed to emit back, so a hallucinated type/mode can never leak
@@ -39,9 +40,15 @@ class LlmClient:
         return self._config.model_name
 
     async def complete(
-        self, system: str, user: str, *, json_mode: bool, max_tokens: int = 400
+        self, system: str, user: str, *, json_mode: bool, max_tokens: int = 400,
+        purpose: str = "llm",
     ) -> str | None:
-        """Return the raw assistant message text, or None on any transport/model failure."""
+        """Return the raw assistant message text, or None on any transport/model failure.
+
+        Records ONE LLM span per logical call (not per retry) — these httpx calls don't go
+        through LangChain, so the framework instrumentor can't see them (2.2). `purpose` names
+        the caller (interpret_query / rerank / write_reason) so each span is identifiable.
+        """
         headers = {"Content-Type": "application/json"}
         if self._config.api_key:
             headers["Authorization"] = f"Bearer {self._config.api_key}"
@@ -62,16 +69,33 @@ class LlmClient:
 
         attempts = max(1, self._config.max_retries + 1)
         timeout = httpx.Timeout(self._config.timeout_seconds)
-        for attempt in range(attempts):
-            try:
-                async with httpx.AsyncClient(timeout=timeout) as client:
-                    response = await client.post(self._url, headers=headers, json=payload)
-                response.raise_for_status()
-                data = response.json()
-                return data["choices"][0]["message"]["content"]
-            except Exception:
-                if attempt + 1 >= attempts:
-                    return None
+        # One span wraps the whole call (incl. retries), so a retried call is not traced twice.
+        with start_span(
+            f"llm.{purpose}",
+            **{
+                "openinference.span.kind": "LLM",
+                "llm.model_name": self._config.model_name,
+                "fursah.llm.purpose": purpose,
+                "input.value": f"{system}\n\n{user}",
+            },
+        ) as span:
+            for attempt in range(attempts):
+                try:
+                    async with httpx.AsyncClient(timeout=timeout) as client:
+                        response = await client.post(self._url, headers=headers, json=payload)
+                    response.raise_for_status()
+                    data = response.json()
+                    content = data["choices"][0]["message"]["content"]
+                    usage = data.get("usage") or {}
+                    span.set_attribute("output.value", content or "")
+                    span.set_attribute("llm.token_count.prompt", int(usage.get("prompt_tokens", 0)))
+                    span.set_attribute("llm.token_count.completion", int(usage.get("completion_tokens", 0)))
+                    return content
+                except Exception:
+                    if attempt + 1 >= attempts:
+                        span.set_attribute("output.value", "")
+                        span.set_attribute("fursah.llm.failed", True)
+                        return None
         return None
 
 
@@ -114,7 +138,7 @@ async def interpret_query(
         "لا تخترع كلمات غير موجودة في المعنى. أعد قائمة فارغة عند عدم وضوح الموضوع."
     )
     user = f"الطلب: {query}"
-    raw = await client.complete(system, user, json_mode=True, max_tokens=200)
+    raw = await client.complete(system, user, json_mode=True, max_tokens=200, purpose="interpret_query")
     data = _loads(raw)
     keywords = data.get("keywords")
     if not isinstance(keywords, list):
@@ -154,7 +178,7 @@ async def rerank(
         f"اهتمامات المستخدم: {', '.join(profile.interests) or 'غير محددة'}\n"
         f"الفرص:\n{json.dumps(items, ensure_ascii=False)}"
     )
-    raw = await client.complete(system, user, json_mode=True, max_tokens=600)
+    raw = await client.complete(system, user, json_mode=True, max_tokens=600, purpose="rerank")
     data = _loads(raw)
     ranked = data.get("ranked_ids")
     if not isinstance(ranked, list):
@@ -215,7 +239,7 @@ async def write_reason(client: LlmClient, query: str, record: dict[str, Any]) ->
         "استخدم عنوان الفرصة وموضوعها كما وردا، ولا تخترع نوع الفرصة أو موضوعها، ولا تؤكد الأهلية."
     )
     user = f"طلب المستخدم: {query}\nحقائق الفرصة: {json.dumps(facts, ensure_ascii=False)}"
-    raw = await client.complete(system, user, json_mode=False, max_tokens=160)
+    raw = await client.complete(system, user, json_mode=False, max_tokens=160, purpose="write_reason")
     if not raw:
         return None
     reason = raw.strip().strip('"').replace("\n", " ")

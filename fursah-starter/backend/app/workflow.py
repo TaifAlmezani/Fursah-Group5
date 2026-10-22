@@ -14,9 +14,11 @@
 from __future__ import annotations
 
 import asyncio
+import json
 import re
 import time
 import warnings
+from dataclasses import asdict
 from datetime import datetime
 from typing import Any, TypedDict
 
@@ -36,6 +38,7 @@ from langgraph.graph import END, START, StateGraph
 
 from .agent import build_llm_client, interpret_query, rerank, write_reason
 from .infrastructure.dependencies import AppDependencies
+from .infrastructure.observability import start_span
 from .repository import SearchCriteria
 from .schemas import (
     BrowseResponse,
@@ -343,9 +346,25 @@ def retrieve_node(state: DiscoveryState) -> DiscoveryState:
             "candidates": [],
             "log": _append_log(state, "tool.search", "repository", "skipped (city conflict)", started),
         }
-    records = search_opportunities(state["criteria"], state["deps"].repository)
-    # Only present records that have a title (the contract needs one).
-    records = [r for r in records if (r.get("title") or "").strip()]
+    criteria = state["criteria"]
+    # TOOL span: the eval cases are graded by SOURCE ids, so record both the opportunity ids
+    # and the flattened source ids of every candidate (what the framework can't see).
+    with start_span(
+        "tool.search_opportunities",
+        **{
+            "openinference.span.kind": "TOOL",
+            "tool.name": "search_opportunities",
+            "input.value": json.dumps(asdict(criteria), ensure_ascii=False, default=str),
+        },
+    ) as span:
+        records = search_opportunities(criteria, state["deps"].repository)
+        # Only present records that have a title (the contract needs one).
+        records = [r for r in records if (r.get("title") or "").strip()]
+        span.set_attribute("candidate_ids", [str(r.get("opportunity_id")) for r in records])
+        span.set_attribute(
+            "candidate_source_ids",
+            [str(sid) for r in records for sid in (r.get("source_ids") or [])],
+        )
     return {
         "candidates": records,
         "log": _append_log(state, "tool.search", "repository", f"{len(records)} candidates", started),
@@ -391,11 +410,23 @@ def _score(record: dict[str, Any], content_terms, profile: UserProfile) -> float
 
 def _actionable(record: dict[str, Any], evaluation_time: datetime) -> bool:
     """Exclude what the user cannot act on: expired deadlines and closed registration."""
+    return not _exclusion_reason(record, evaluation_time)
+
+
+def _exclusion_reason(record: dict[str, Any], evaluation_time: datetime) -> str:
+    """Why a candidate is NOT actionable ("" = actionable). Reasons use the dev-case vocabulary."""
     if evaluate_deadline(record, evaluation_time) == DEADLINE_EXPIRED:
-        return False
-    if record.get("registration_statement") in {"closed", "cancelled"}:
-        return False
-    return True
+        return "deadline_passed"
+    reg = record.get("registration_statement")
+    if reg == "cancelled":
+        return "status_cancelled"
+    if reg == "closed":
+        return "status_closed"
+    return ""
+
+
+def _source_ids(record: dict[str, Any]) -> list[str]:
+    return [str(sid) for sid in (record.get("source_ids") or [])]
 
 
 def assess_node(state: DiscoveryState) -> DiscoveryState:
@@ -406,16 +437,22 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
 
     request = state["request"]
     evaluation_time = state["evaluation_time"]
-    actionable = [r for r in state["candidates"] if _actionable(r, evaluation_time)]
-    if not actionable:
-        return {"outcome": "no_match",
-                "log": _append_log(state, "assess", "agent", "no actionable candidates", started)}
+
+    # Split candidates into excluded (with a reason) and actionable.
+    excluded: list[tuple[dict[str, Any], str]] = []
+    actionable: list[dict[str, Any]] = []
+    for record in state["candidates"]:
+        reason = _exclusion_reason(record, evaluation_time)
+        if reason:
+            excluded.append((record, reason))
+        else:
+            actionable.append(record)
 
     # Exact matches satisfy the topic relevance floor; the rest share the SAME hard constraints
     # (city, type, budget) and become the "closest" fallback for show-more / no exact match.
     content = set(state.get("content_terms") or [])
     exact = actionable
-    if content:
+    if content and actionable:
         interests = (
             set().union(*(_stems(i) for i in request.profile.interests))
             if request.profile.interests else set()
@@ -432,6 +469,9 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
 
         exact = [r for r in actionable if _relevant(r)]
 
+    exact_ids = {r.get("opportunity_id") for r in exact}
+    off_topic = [r for r in actionable if r.get("opportunity_id") not in exact_ids]
+
     def _rank(records: list[dict[str, Any]]):
         return sorted(
             ((r, _score(r, content, request.profile)) for r in records),
@@ -439,30 +479,43 @@ def assess_node(state: DiscoveryState) -> DiscoveryState:
         )
 
     approximate = not exact
-    if exact:
-        # Exact matches first (priority order), then the closest others for "show all".
-        exact_ids = {r.get("opportunity_id") for r in exact}
-        rest = [r for r in actionable if r.get("opportunity_id") not in exact_ids]
-        ordered = [(r, s, False) for r, s in _rank(exact)] + [(r, s, True) for r, s in _rank(rest)]
+    ordered: list[tuple[dict[str, Any], float, bool]] = []
+    if actionable:
+        if exact:
+            ordered = [(r, s, False) for r, s in _rank(exact)] + [(r, s, True) for r, s in _rank(off_topic)]
+        else:
+            ordered = [(r, s, True) for r, s in _rank(actionable)]
+
+    # Decide the outcome.
+    skill_gap: list[str] = []
+    if not actionable:
+        outcome = "no_match"
     else:
-        # No exact match: show the closest actionable opportunities, all flagged approximate.
-        ordered = [(r, s, True) for r, s in _rank(actionable)]
+        required = ordered[0][0].get("required_skills")
+        if not approximate and request.profile.skills is None and isinstance(required, list) and required:
+            outcome, skill_gap = "skills", [str(s) for s in required]
+        else:
+            outcome = "rank"
 
-    # Decision-relevant skill gap applies only when there IS an exact best match that states a
-    # required skill the user left unanswered (null). In fallback mode we don't ask — we show.
-    if not approximate:
-        top_record = ordered[0][0]
-        required = top_record.get("required_skills")
-        if request.profile.skills is None and isinstance(required, list) and required:
-            return {"outcome": "skills", "ranked_all": ordered,
-                    "skill_gap": [str(s) for s in required],
-                    "log": _append_log(state, "assess", "agent",
-                                       f"exact={len(exact)}, skill gap -> needs_info", started)}
+    # assess.filter span: the excluded/off-topic source IDs and the exact/approximate split —
+    # the "missing signal" from the 2.1 audit that no node span records on its own.
+    with start_span("assess.filter", outcome=outcome) as span:
+        span.set_attribute("excluded", [f"{sid}:{reason}" for record, reason in excluded
+                                        for sid in _source_ids(record)])
+        span.set_attribute("off_topic_source_ids", [sid for r in off_topic for sid in _source_ids(r)])
+        span.set_attribute("exact_source_ids", [sid for r in exact for sid in _source_ids(r)])
+        span.set_attribute("exact_count", len(exact))
+        span.set_attribute("approximate_count", len(off_topic))
+        span.set_attribute("approximate", approximate)
 
-    detail = (f"no exact match -> {len(ordered)} closest shown"
-              if approximate else f"exact={len(exact)}, closest-extra={len(ordered) - len(exact)}")
-    return {"outcome": "rank", "ranked_all": ordered, "approximate": approximate,
-            "log": _append_log(state, "assess", "agent", detail, started)}
+    log = _append_log(state, "assess", "agent",
+                      f"outcome={outcome}, exact={len(exact)}, off_topic={len(off_topic)}, "
+                      f"excluded={len(excluded)}", started)
+    if outcome == "no_match":
+        return {"outcome": "no_match", "log": log}
+    if outcome == "skills":
+        return {"outcome": "skills", "ranked_all": ordered, "skill_gap": skill_gap, "log": log}
+    return {"outcome": "rank", "ranked_all": ordered, "approximate": approximate, "log": log}
 
 
 def _route(state: DiscoveryState) -> str:
@@ -645,7 +698,9 @@ async def rank_node(state: DiscoveryState) -> DiscoveryState:
     ranked_all = state["ranked_all"]
     exact = [(record, score) for record, score, is_approx in ranked_all if not is_approx]
     tail = [item for item in ranked_all if item[2]]  # approximate "closest" items, kept as-is
+    deterministic_order = [str(rec["opportunity_id"]) for rec, _ in exact]
     reranked = False
+    order: list[str] | None = None
     if llm is not None and len(exact) >= 2:
         try:
             order = await rerank(llm, request.query, request.profile, [rec for rec, _ in exact])
@@ -655,6 +710,11 @@ async def rank_node(state: DiscoveryState) -> DiscoveryState:
             position = {oid: i for i, oid in enumerate(order)}
             exact.sort(key=lambda pair: position.get(pair[0]["opportunity_id"], len(order)))
             reranked = True
+    # rank.rerank span: deterministic order vs the LLM order (missing signal from the audit).
+    with start_span("rank.rerank", used_llm=reranked) as span:
+        span.set_attribute("deterministic_order", deterministic_order)
+        span.set_attribute("llm_order", [str(x) for x in (order or [])])
+        span.set_attribute("final_order", [str(rec["opportunity_id"]) for rec, _ in exact])
     ranked_all = [(record, score, False) for record, score in exact] + tail
 
     # Build the FULL ordered list so browse can paginate; /discover shows only the top slice.
@@ -795,27 +855,31 @@ def _emit_log(deps: AppDependencies, request_id: str, log: list[dict[str, Any]])
 async def discover(request: DiscoveryRequest, deps: AppDependencies) -> DiscoveryResponse:
     """Public request + dependencies -> DiscoveryResponse, within the workflow time budget."""
     evaluation_time = deps.evaluation_time or deps.settings.resolve_evaluation_time()
-    initial: DiscoveryState = {
-        "deps": deps,
-        "request": request,
-        "evaluation_time": evaluation_time,
-        "llm": build_llm_client(deps),
-    }
-    graph = build_graph()
-    try:
-        final = await asyncio.wait_for(
-            graph.ainvoke(initial),
-            timeout=deps.settings.workflow_timeout_seconds,
-        )
-    except asyncio.TimeoutError:
-        return DiscoveryResponse(
-            request_id=request.request_id,
-            status=DiscoveryStatus.ERROR,
-            message="تجاوز البحث المدة المسموحة قبل الوصول إلى نتيجة آمنة.",
-            error_code="FURSAH_TIMEOUT",
-        )
-    _emit_log(deps, request.request_id, final.get("log", []))
-    return final["response"]
+    # Root span: without it, each framework/LLM span would start its own trace. request_id lets
+    # us line up the Phoenix trace with the JSONL tracer; evaluation_time pins the instant used.
+    with start_span("workflow.discover", request_id=request.request_id,
+                    evaluation_time=evaluation_time.isoformat()):
+        initial: DiscoveryState = {
+            "deps": deps,
+            "request": request,
+            "evaluation_time": evaluation_time,
+            "llm": build_llm_client(deps),
+        }
+        graph = build_graph()
+        try:
+            final = await asyncio.wait_for(
+                graph.ainvoke(initial),
+                timeout=deps.settings.workflow_timeout_seconds,
+            )
+        except asyncio.TimeoutError:
+            return DiscoveryResponse(
+                request_id=request.request_id,
+                status=DiscoveryStatus.ERROR,
+                message="تجاوز البحث المدة المسموحة قبل الوصول إلى نتيجة آمنة.",
+                error_code="FURSAH_TIMEOUT",
+            )
+        _emit_log(deps, request.request_id, final.get("log", []))
+        return final["response"]
 
 
 async def discover_all(
@@ -830,28 +894,29 @@ async def discover_all(
     offset = max(0, offset)
     limit = max(1, min(limit, 50))
     evaluation_time = deps.evaluation_time or deps.settings.resolve_evaluation_time()
-    initial: DiscoveryState = {
-        "deps": deps,
-        "request": request,
-        "evaluation_time": evaluation_time,
-        "llm": None,  # browse is deterministic: grounded fallback reasons for every item
-    }
-    graph = build_graph()
-    try:
-        final = await asyncio.wait_for(
-            graph.ainvoke(initial), timeout=deps.settings.workflow_timeout_seconds
-        )
-    except asyncio.TimeoutError:
+    with start_span("workflow.discover_all", request_id=request.request_id,
+                    evaluation_time=evaluation_time.isoformat(), offset=offset, limit=limit):
+        initial: DiscoveryState = {
+            "deps": deps,
+            "request": request,
+            "evaluation_time": evaluation_time,
+            "llm": None,  # browse is deterministic: grounded fallback reasons for every item
+        }
+        graph = build_graph()
+        try:
+            final = await asyncio.wait_for(
+                graph.ainvoke(initial), timeout=deps.settings.workflow_timeout_seconds
+            )
+        except asyncio.TimeoutError:
+            return BrowseResponse(
+                request_id=request.request_id, status=DiscoveryStatus.ERROR,
+                message="تجاوز البحث المدة المسموحة.", total=0, offset=offset, limit=limit,
+            )
+        _emit_log(deps, request.request_id, final.get("log", []))
+        response = final["response"]
+        all_recs = final.get("all_recommendations", [])
         return BrowseResponse(
-            request_id=request.request_id, status=DiscoveryStatus.ERROR,
-            message="تجاوز البحث المدة المسموحة.", total=0, offset=offset, limit=limit,
-        )
-
-    _emit_log(deps, request.request_id, final.get("log", []))
-    response = final["response"]
-    all_recs = final.get("all_recommendations", [])
-    return BrowseResponse(
-        request_id=request.request_id,
+            request_id=request.request_id,
         status=response.status,
         message=response.message,
         total=len(all_recs),

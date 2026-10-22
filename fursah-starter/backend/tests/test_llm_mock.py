@@ -32,7 +32,7 @@ MOCK_CONFIG = ModelClientConfig(
 
 def test_interpret_query_returns_keywords_only(monkeypatch):
     """Query interpretation yields only soft keywords — never hard filters (type/mode/city)."""
-    async def fake_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def fake_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         return '{"keywords": ["بايثون", "برمجة"], "city": "جدة", "delivery_modes": ["online"]}'
 
     monkeypatch.setattr(agent.LlmClient, "complete", fake_complete)
@@ -44,7 +44,7 @@ def test_interpret_query_returns_keywords_only(monkeypatch):
 
 def test_non_arabic_reason_is_rejected(monkeypatch, deps):
     """A non-Arabic (e.g. Chinese) model reason is dropped for the deterministic Arabic one."""
-    async def fake_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def fake_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         return "{}" if json_mode else "这是一个数据分析研讨会"  # Chinese
 
     monkeypatch.setattr(agent.LlmClient, "complete", fake_complete)
@@ -63,7 +63,7 @@ def test_non_arabic_reason_is_rejected(monkeypatch, deps):
 
 def test_ungrounded_reason_is_rejected(monkeypatch, deps):
     """An Arabic but off-topic reason (no link to the opportunity) is dropped for the fallback."""
-    async def fake_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def fake_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         return "{}" if json_mode else "هذه فرصة ممتازة وننصح بها بشدة"  # no title/topic words
 
     monkeypatch.setattr(agent.LlmClient, "complete", fake_complete)
@@ -80,7 +80,7 @@ def test_ungrounded_reason_is_rejected(monkeypatch, deps):
 
 def test_rerank_drops_invented_ids(monkeypatch):
     """The re-rank is grounded: ids not in the pool are silently dropped, order preserved."""
-    async def fake_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def fake_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         return '{"ranked_ids": ["SRC-B", "SRC-INVENTED", "SRC-A"]}'
 
     monkeypatch.setattr(agent.LlmClient, "complete", fake_complete)
@@ -96,7 +96,7 @@ def test_rerank_reorders_results_in_discover(monkeypatch, deps):
     import re
     captured = {}
 
-    async def fake_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def fake_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         if json_mode and "ranked_ids" in system:
             ids = re.findall(r'"id":\s*"([^"]+)"', user)
             captured["ids"] = ids
@@ -123,7 +123,7 @@ def test_rerank_reorders_results_in_discover(monkeypatch, deps):
 
 def test_llm_failure_falls_back_to_deterministic(monkeypatch, deps):
     """A model transport failure must not break discovery — the deterministic reason is used."""
-    async def failing_complete(self, system, user, *, json_mode, max_tokens=400):
+    async def failing_complete(self, system, user, *, json_mode, max_tokens=400, purpose="llm"):
         return None  # simulate a transport/model failure
 
     monkeypatch.setattr(agent.LlmClient, "complete", failing_complete)
