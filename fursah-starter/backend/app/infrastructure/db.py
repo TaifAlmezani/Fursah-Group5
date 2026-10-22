@@ -21,7 +21,8 @@ from pathlib import Path
 from typing import Any
 
 from sqlalchemy import (
-    JSON, Boolean, Date, Float, ForeignKey, Integer, String, create_engine, select, func,
+    JSON, Boolean, Date, Float, ForeignKey, Integer, String, UniqueConstraint,
+    create_engine, select, func,
 )
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Mapped, Session, mapped_column, sessionmaker
@@ -69,6 +70,21 @@ class SourceAlias(Base):
     opportunity_id: Mapped[str] = mapped_column(
         ForeignKey("opportunities.opportunity_id"), index=True
     )
+
+
+class InterestedRow(Base):
+    """A user's saved ("مهتم") opportunity. Keyed by a browser-scoped client id, since the
+    app has no real authentication — see InterestedRepository. The unique constraint makes
+    saving idempotent (no duplicate records). opportunity_id is always the CANONICAL id, so a
+    secondary source id is resolved to its parent before it is stored.
+    """
+    __tablename__ = "interested"
+    __table_args__ = (UniqueConstraint("client_id", "opportunity_id", name="uq_client_opportunity"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    client_id: Mapped[str] = mapped_column(String(64), index=True)
+    opportunity_id: Mapped[str] = mapped_column(String(40), index=True)
+    created_at: Mapped[str] = mapped_column(String(40))
 
 
 # --------------------------------------------------------------------------
@@ -136,7 +152,10 @@ def rebuild_from_json(engine: Engine, records: list[dict[str, Any]]) -> int:
     if not records:
         raise ValueError("No prepared records: run data/build_opportunities.py first.")
 
-    Base.metadata.drop_all(engine)
+    # Replace only the opportunity tables — NOT `interested`, so users' saved opportunities
+    # survive a dataset rebuild. aliases first (they reference opportunities).
+    SourceAlias.__table__.drop(engine, checkfirst=True)
+    OpportunityRow.__table__.drop(engine, checkfirst=True)
     Base.metadata.create_all(engine)
     with Session(engine) as session, session.begin():
         for record in records:

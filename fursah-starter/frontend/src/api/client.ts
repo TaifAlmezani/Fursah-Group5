@@ -1,7 +1,8 @@
 /** The only HTTP boundary. Field names match backend/app/schemas.py; no fallback data. */
 import { validateConstraints } from '../profile/profile';
+import { getClientId } from '../profile/clientId';
 import { fieldLabel } from '../labels';
-import type { ApiResult, BrowseResponse, DiscoveryRequest, DiscoveryResponse, OpportunityDetails, Recommendation } from '../types';
+import type { ApiResult, BrowseResponse, DiscoveryRequest, DiscoveryResponse, InterestedList, OpportunityDetails, Recommendation } from '../types';
 
 const BASE_URL = (import.meta.env.VITE_API_BASE_URL?.trim() || 'http://localhost:8000').replace(/\/+$/, '');
 const TIMEOUT_MS = 100_000;
@@ -133,6 +134,36 @@ export async function discoverAll(
   });
   if (response.kind !== 'http' || response.status < 200 || response.status >= 300) return null;
   return validBrowse(response.body) ? response.body : null;
+}
+
+const INTERESTED_PATH = '/api/v1/interested';
+const ok2xx = (r: HttpResult): boolean => r.kind === 'http' && r.status >= 200 && r.status < 300;
+
+/** Save an opportunity for this browser. Returns true on success (idempotent on the server). */
+export async function addInterest(opportunityId: string): Promise<boolean> {
+  const response = await send(INTERESTED_PATH, {
+    method: 'POST',
+    body: JSON.stringify({ client_id: getClientId(), opportunity_id: opportunityId }),
+  });
+  return ok2xx(response);
+}
+
+export async function removeInterest(opportunityId: string): Promise<boolean> {
+  const response = await send(
+    `${INTERESTED_PATH}/${encodeURIComponent(opportunityId)}?client_id=${encodeURIComponent(getClientId())}`,
+    { method: 'DELETE' },
+  );
+  return ok2xx(response);
+}
+
+/** This browser's saved opportunities, most recent first. Returns null on failure. */
+export async function listInterested(): Promise<InterestedList | null> {
+  const response = await send(`${INTERESTED_PATH}?client_id=${encodeURIComponent(getClientId())}`);
+  if (!ok2xx(response) || response.kind !== 'http') return null;
+  const body = response.body;
+  if (!object(body) || !strings(body.opportunity_ids) || !Array.isArray(body.opportunities)) return null;
+  const opportunities = body.opportunities.filter(validDetails);
+  return { client_id: getClientId(), opportunity_ids: body.opportunity_ids, opportunities };
 }
 
 export async function getOpportunity(id: string): Promise<ApiResult<OpportunityDetails>> {

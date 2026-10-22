@@ -1,7 +1,9 @@
 
 const LOGO_REMOTE = 'https://www.saai.sa/logo-white-cropped.svg';
 
-export default function Header({ onEditProfile }: { onEditProfile: () => void }) {
+export default function Header({ onEditProfile, onShowSaved, savedCount }: {
+  onEditProfile: () => void; onShowSaved: () => void; savedCount: number;
+}) {
   return (
     <header className="header">
       <div className="container header__inner">
@@ -18,7 +20,12 @@ export default function Header({ onEditProfile }: { onEditProfile: () => void })
             <div className="brand__tag">بيانات تدريبية خيالية · مشروع تعليمي</div>
           </div>
         </div>
-        <button className="btn btn--outline" onClick={onEditProfile}>الملف الشخصي</button>
+        <div className="header__actions">
+          <button className="btn btn--outline" onClick={onShowSaved}>
+            <span aria-hidden="true">★</span> الفرص المهتم بها{savedCount ? ` (${savedCount})` : ''}
+          </button>
+          <button className="btn btn--outline" onClick={onEditProfile}>الملف الشخصي</button>
+        </div>
       </div>
     </header>
   );

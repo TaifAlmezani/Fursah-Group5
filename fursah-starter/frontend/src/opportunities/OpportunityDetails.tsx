@@ -2,13 +2,15 @@ import { useEffect, useState, type ReactNode } from 'react';
 import type { ApiResult, OpportunityDetails as Details, Recommendation } from '../types';
 import { UNKNOWN, fmtCost, fmtDate, fmtDeadline, label, modeLabel } from '../labels';
 import { getOpportunity } from '../api/client';
-import { EligibilityBadge } from './OpportunityCard';
+import { EligibilityBadge, InterestButton } from './OpportunityCard';
 import Drawer from '../components/Drawer';
 
 type State = { loading: true } | { loading: false; result: ApiResult<Details> };
 
 /** Source-grounded detail view. Shows only what the backend returns. */
-export default function OpportunityDetails({ rec, onClose }: { rec: Recommendation; onClose: () => void }) {
+export default function OpportunityDetails({ rec, onClose, saved, onToggleSave }: {
+  rec: Recommendation; onClose: () => void; saved: boolean; onToggleSave: () => void;
+}) {
   const [state, setState] = useState<State>({ loading: true });
 
   useEffect(() => {
@@ -35,6 +37,7 @@ export default function OpportunityDetails({ rec, onClose }: { rec: Recommendati
 
   return (
     <Drawer title="تفاصيل الفرصة" onClose={onClose}>
+      <div className="details__actions"><InterestButton saved={saved} onToggle={onToggleSave} /></div>
       {state.loading && <p className="muted">جارٍ تحميل تفاصيل الفرصة…</p>}
 
       {!state.loading && !state.result.ok && (

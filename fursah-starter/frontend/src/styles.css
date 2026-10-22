@@ -251,3 +251,40 @@ select.input { padding: 0 10px; }
 .interest-picker__control.is-missing { border-color: var(--danger, #ffb4ab); }
 
 .field-group.is-missing { outline: 1px solid var(--warn); outline-offset: 4px; }
+
+/* --- Accessibility helper --- */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+/* --- Header + details action groups --- */
+.header__actions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; }
+.details__actions { display: flex; gap: 8px; }
+
+/* --- Interested ("مهتم") button --- */
+.interest-btn { display: inline-flex; align-items: center; gap: 6px; }
+.interest-btn--on { background: var(--accent-bg); color: var(--accent); border: 1px solid var(--accent); }
+.interest-btn--on:hover:not(:disabled) { background: #174a45; }
+
+/* --- Saved opportunities panel --- */
+.saved-item { gap: 12px; }
+.saved-item__titles { display: flex; flex-direction: column; gap: 4px; }
+
+/* --- Interactive match percentage + popover --- */
+.opp__score--btn { background: none; border: 0; padding: 2px 4px; margin: -2px -4px; cursor: pointer; border-radius: 8px; text-align: left; }
+.opp__score--btn:hover { background: var(--raise); }
+.opp__score--btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.match-pop {
+  z-index: 2000; width: min(300px, calc(100vw - 16px));
+  background: var(--surface-2); border: 1px solid var(--line-4); border-radius: 12px;
+  padding: 12px 14px; box-shadow: 0 12px 32px rgba(0, 0, 0, .45); color: var(--ink);
+  font-size: 13px; line-height: 1.5;
+}
+.match-pop__title { font-weight: 600; font-size: 14px; margin-bottom: 8px; color: var(--ink); }
+.match-pop__list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.match-factor { display: grid; grid-template-columns: 18px 1fr; gap: 8px; align-items: start; }
+.match-factor__icon { font-weight: 700; line-height: 1.5; text-align: center; }
+.match-factor--match .match-factor__icon { color: var(--accent); }
+.match-factor--mismatch .match-factor__icon { color: var(--danger); }
+.match-factor--unknown .match-factor__icon { color: var(--warn); }
+.match-factor--mismatch .match-factor__text { color: var(--ink-2); }
+.match-pop__note { margin: 10px 0 0; padding-top: 8px; border-top: 1px solid var(--line-2); color: var(--ink-3); font-size: 12px; }
+.match-pop__empty { margin: 0; color: var(--ink-3); }

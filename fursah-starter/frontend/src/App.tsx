@@ -1,12 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import type { Constraints, DiscoveryResponse, Profile, Recommendation, ViewState } from './types';
-import { discover, discoverAll } from './api/client';
+import { addInterest, discover, discoverAll, listInterested, removeInterest } from './api/client';
 import { loadInitialProfile, persistProfile } from './profile/profile';
 import Header from './components/Header';
 import { ProfileEditor, ProfileSummary } from './profile/ProfilePanel';
 import SearchForm from './opportunities/SearchForm';
 import SearchResults from './opportunities/SearchResults';
 import OpportunityDetails from './opportunities/OpportunityDetails';
+import InterestedPanel from './opportunities/InterestedPanel';
 
 export default function App() {
   const [initial] = useState(loadInitialProfile);
@@ -17,6 +18,8 @@ export default function App() {
   const [res, setRes] = useState<DiscoveryResponse | null>(null);
   const [editing, setEditing] = useState(false);
   const [details, setDetails] = useState<Recommendation | null>(null);
+  const [savedIds, setSavedIds] = useState<Set<string>>(new Set());  // interested (browser-scoped)
+  const [showSaved, setShowSaved] = useState(false);
   const [more, setMore] = useState<Recommendation[]>([]);      // extra recs from show-more
   const [browseTotal, setBrowseTotal] = useState<number | null>(null);
   const [browseLoading, setBrowseLoading] = useState(false);
@@ -29,6 +32,29 @@ export default function App() {
   useEffect(() => () => { ++seq.current; controller.current?.abort(); }, []);
 
   useEffect(() => persistProfile(profile, constraints), [profile, constraints]);
+
+  // Load this browser's saved opportunities once, so cards show the correct state on reload.
+  useEffect(() => {
+    let alive = true;
+    listInterested().then(r => { if (alive && r) setSavedIds(new Set(r.opportunity_ids)); });
+    return () => { alive = false; };
+  }, []);
+
+  // Optimistic toggle; revert if the request fails. opportunity_id is the canonical id.
+  async function toggleSave(opportunityId: string) {
+    const wasSaved = savedIds.has(opportunityId);
+    setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(opportunityId); else next.add(opportunityId);
+      return next;
+    });
+    const ok = wasSaved ? await removeInterest(opportunityId) : await addInterest(opportunityId);
+    if (!ok) setSavedIds(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.add(opportunityId); else next.delete(opportunityId);
+      return next;
+    });
+  }
 
   const missing = view === 'needs_info' ? res?.missing_fields ?? [] : [];
 
@@ -101,7 +127,7 @@ export default function App() {
 
   return (
     <div className="app" dir="rtl" lang="ar">
-      <Header onEditProfile={() => setEditing(true)} />
+      <Header onEditProfile={() => setEditing(true)} onShowSaved={() => setShowSaved(true)} savedCount={savedIds.size} />
       <main className="container main">
         {initial.notice && <p className="notice" role="status">{initial.notice}</p>}
         <ProfileSummary profile={profile} constraints={constraints} missing={missing} onEdit={() => setEditing(true)} />
@@ -125,6 +151,8 @@ export default function App() {
           onRetry={() => runDiscover()}
           onFocusQuery={() => queryRef.current?.focus()}
           onOpenDetails={setDetails}
+          isSaved={id => savedIds.has(id)}
+          onToggleSave={toggleSave}
         />
       </main>
 
@@ -143,7 +171,21 @@ export default function App() {
           }}
         />
       )}
-      {details && <OpportunityDetails rec={details} onClose={() => setDetails(null)} />}
+      {details && (
+        <OpportunityDetails
+          rec={details}
+          onClose={() => setDetails(null)}
+          saved={savedIds.has(details.opportunity_id)}
+          onToggleSave={() => toggleSave(details.opportunity_id)}
+        />
+      )}
+      {showSaved && (
+        <InterestedPanel
+          onClose={() => setShowSaved(false)}
+          onOpenDetails={rec => { setShowSaved(false); setDetails(rec); }}
+          onRemoved={id => setSavedIds(prev => { const next = new Set(prev); next.delete(id); return next; })}
+        />
+      )}
     </div>
   );
 }

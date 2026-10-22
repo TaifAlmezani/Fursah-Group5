@@ -1,4 +1,4 @@
-# Optional LLM layer (OpenRouter, OpenAI-compatible) used ONLY where a model genuinely helps:
+#  LLM layer (OpenRouter) used ONLY where a model genuinely helps:
 #   1. interpret_query(): turn free Arabic text into retrieval hints (keywords / city / type).
 #   2. write_reason():     phrase a short Arabic justification for an ALREADY-selected,
 #                          evidence-grounded recommendation.
@@ -11,6 +11,7 @@
 from __future__ import annotations
 
 import json
+import re
 from typing import Any
 
 import httpx
@@ -44,7 +45,7 @@ class LlmClient:
         headers = {"Content-Type": "application/json"}
         if self._config.api_key:
             headers["Authorization"] = f"Bearer {self._config.api_key}"
-        # Optional OpenRouter attribution headers (harmless on other OpenAI-compatible hosts).
+        # Optional OpenRouter attribution headers.
         headers.setdefault("X-Title", "FURSAH")
 
         payload: dict[str, Any] = {
@@ -99,39 +100,26 @@ def _loads(text: str | None) -> dict[str, Any]:
 async def interpret_query(
     client: LlmClient, query: str, profile: UserProfile, constraints: SearchConstraints
 ) -> dict[str, Any]:
-    """Ask the model for retrieval hints from the Arabic query. Returns {} on any problem.
+    """Ask the model for SOFT topic keywords from the Arabic query. Returns {} on any problem.
 
-    Output is strictly validated against the known vocabulary before use, so the model can
-    only ever *narrow or enrich* deterministic retrieval, never introduce unsupported values.
+    Keywords only — they improve topic matching but are never applied as hard filters, so the
+    model can broaden/enrich retrieval but can never silently constrain it (e.g. turning a city
+    mention into an in-person-only filter). Hard filters come from the form + deterministic
+    detection in the workflow.
     """
     system = (
-        "أنت مساعد يحوّل طلب بحث عربي إلى مرشّحات بحث منظّمة فقط. "
-        "أعد JSON بالمفاتيح: keywords (قائمة كلمات مفتاحية عربية أو إنجليزية)، "
-        "city (اسم مدينة واحد أو null)، "
-        "opportunity_types (من: workshop, course, internship, competition, volunteering, event)، "
-        "delivery_modes (من: in_person, online, hybrid). "
-        "لا تخترع قيمًا غير موجودة في النص. استخدم null أو قوائم فارغة عند عدم الذكر."
+        "استخرج كلمات مفتاحية موضوعية من طلب بحث عربي عن فرص تدريبية. "
+        "أعد JSON بالشكل {\"keywords\": [\"...\"]} يحوي كلمات تصف الموضوع فقط "
+        "(مثل: تحليل، بيانات، برمجة)، دون أسماء المدن أو أنواع الفعاليات. "
+        "لا تخترع كلمات غير موجودة في المعنى. أعد قائمة فارغة عند عدم وضوح الموضوع."
     )
-    user = f"الطلب: {query}\nالمدينة المحفوظة في الملف: {profile.city or 'غير محددة'}"
-    raw = await client.complete(system, user, json_mode=True, max_tokens=300)
+    user = f"الطلب: {query}"
+    raw = await client.complete(system, user, json_mode=True, max_tokens=200)
     data = _loads(raw)
-    if not data:
-        return {}
-
-    hints: dict[str, Any] = {}
     keywords = data.get("keywords")
-    if isinstance(keywords, list):
-        hints["keywords"] = [k.strip() for k in keywords if isinstance(k, str) and k.strip()][:12]
-    city = data.get("city")
-    if isinstance(city, str) and city.strip():
-        hints["city"] = city.strip()
-    types = data.get("opportunity_types")
-    if isinstance(types, list):
-        hints["opportunity_types"] = [t for t in types if t in _KNOWN_TYPES]
-    modes = data.get("delivery_modes")
-    if isinstance(modes, list):
-        hints["delivery_modes"] = [m for m in modes if m in _KNOWN_MODES]
-    return hints
+    if not isinstance(keywords, list):
+        return {}
+    return {"keywords": [k.strip() for k in keywords if isinstance(k, str) and k.strip()][:12]}
 
 
 async def rerank(
@@ -183,8 +171,37 @@ async def rerank(
     return ordered
 
 
+_ARABIC = re.compile(r"[؀-ۿ]")
+_ARABIC_WORD = re.compile(r"[؀-ۿ]{3,}")
+
+
+def _is_arabic(text: str) -> bool:
+    """True when the text is predominantly Arabic (guards against a model answering in another
+    language — e.g. Qwen sometimes replies in Chinese)."""
+    letters = [c for c in text if c.isalpha()]
+    if not letters:
+        return False
+    arabic = sum(1 for c in letters if _ARABIC.match(c))
+    return arabic / len(letters) >= 0.6
+
+
+def _mentions_opportunity(reason: str, record: dict[str, Any]) -> bool:
+    """True when the reason actually references this opportunity's title/topic, so a generic or
+    fabricated reason (describing a different activity) is rejected. Latin-only titles like
+    'Power BI' cannot be checked this way, so they pass."""
+    source = f"{record.get('title') or ''} {record.get('topic') or ''}"
+    words = set(_ARABIC_WORD.findall(source))
+    if not words:
+        return True
+    return any(word in reason for word in words)
+
+
 async def write_reason(client: LlmClient, query: str, record: dict[str, Any]) -> str | None:
-    """Phrase a one-sentence Arabic reason for a pre-selected, grounded recommendation."""
+    """Phrase a one-sentence Arabic reason for a pre-selected, grounded recommendation.
+
+    Returns None (so the caller uses the deterministic Arabic reason) unless the model's reply
+    is Arabic AND references this opportunity — so a non-Arabic or fabricated reason is dropped.
+    """
     facts = {
         "title": record.get("title"),
         "type": record.get("opportunity_type"),
@@ -193,12 +210,15 @@ async def write_reason(client: LlmClient, query: str, record: dict[str, Any]) ->
         "topics": record.get("topics"),
     }
     system = (
-        "اكتب جملة عربية واحدة قصيرة تشرح لماذا تناسب هذه الفرصة طلب المستخدم، "
-        "بالاعتماد فقط على الحقائق المعطاة. لا تؤكد الأهلية ولا تضف معلومات غير موجودة."
+        "اكتب بالعربية الفصحى فقط ولا تستخدم أي لغة أخرى. "
+        "اكتب جملة واحدة قصيرة تشرح لماذا تناسب هذه الفرصة طلب المستخدم، معتمداً فقط على الحقائق المعطاة. "
+        "استخدم عنوان الفرصة وموضوعها كما وردا، ولا تخترع نوع الفرصة أو موضوعها، ولا تؤكد الأهلية."
     )
     user = f"طلب المستخدم: {query}\nحقائق الفرصة: {json.dumps(facts, ensure_ascii=False)}"
     raw = await client.complete(system, user, json_mode=False, max_tokens=160)
     if not raw:
         return None
     reason = raw.strip().strip('"').replace("\n", " ")
-    return reason or None
+    if not reason or not _is_arabic(reason) or not _mentions_opportunity(reason, record):
+        return None  # non-Arabic or ungrounded -> deterministic fallback
+    return reason

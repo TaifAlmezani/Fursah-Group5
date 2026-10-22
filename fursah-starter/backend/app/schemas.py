@@ -90,6 +90,22 @@ class DiscoveryRequest(BaseModel):
         return value
 
 
+class MatchKind(str, Enum):
+    MATCH = "match"        # a confirmed, source-supported match
+    MISMATCH = "mismatch"  # a confirmed point against the match
+    UNKNOWN = "unknown"    # the source does not establish this (uncertainty)
+
+
+class MatchFactor(BaseModel):
+    """One auditable reason behind a relevance score, derived from the real scoring signals.
+
+    The frontend's match tooltip renders these; nothing here is invented — each factor comes
+    from an actual signal (interest/term overlap, location, cost, registration, uncertainty).
+    """
+    text: NonBlank
+    kind: MatchKind
+
+
 class Recommendation(BaseModel):
     evidence_version: NonBlank | None = None
     opportunity_id: NonBlank
@@ -105,6 +121,8 @@ class Recommendation(BaseModel):
     source_ids: list[NonBlank] = Field(min_length=1)
     relevance_score: float | None = Field(default=None, ge=0, le=100)
     next_action: str | None = None
+    # Auditable breakdown of the relevance score for the "why this percentage" tooltip.
+    match_factors: list[MatchFactor] = Field(default_factory=list)
 
 
 class ExecutionStep(BaseModel):
@@ -131,8 +149,6 @@ class DiscoveryResponse(BaseModel):
     constraint_conflict: bool = False
     # True when no exact match existed and the closest opportunities are shown instead.
     approximate: bool = False
-    # Optional agent run log (stages, tools, model calls). Older clients ignore it.
-    execution_log: list[ExecutionStep] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def enforce_outcome_contract(self) -> "DiscoveryResponse":
@@ -236,6 +252,26 @@ class OpportunityDetailsResponse(BaseModel):
     source_ids: list[NonBlank] = Field(min_length=1)
     last_verified_at: str | None = None
     data_warnings: list[str] = Field(default_factory=list)
+
+
+ClientId = Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=64)]
+
+
+class InterestRequest(BaseModel):
+    """Save ("مهتم") an opportunity. client_id is a browser-scoped id (NOT authentication)."""
+    client_id: ClientId
+    opportunity_id: NonBlank
+
+
+class InterestStatusResponse(BaseModel):
+    opportunity_id: NonBlank
+    interested: bool
+
+
+class InterestedListResponse(BaseModel):
+    client_id: NonBlank
+    opportunity_ids: list[NonBlank] = Field(default_factory=list)
+    opportunities: list[OpportunityDetailsResponse] = Field(default_factory=list)
 
 
 class TraceEvent(BaseModel):

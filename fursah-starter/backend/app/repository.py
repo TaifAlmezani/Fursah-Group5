@@ -13,14 +13,17 @@ from __future__ import annotations
 
 import json
 from dataclasses import dataclass, field
-from datetime import date
+from datetime import date, datetime, timezone
 from typing import Any
 
-from sqlalchemy import or_, select
+from sqlalchemy import delete, or_, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from .infrastructure.data_package import DatasetLoader
 from .infrastructure.db import (
+    Base,
+    InterestedRow,
     OpportunityRow,
     SourceAlias,
     count_opportunities,
@@ -117,6 +120,9 @@ class OpportunityRepository:
         if self._session_factory is not None:
             return self._session_factory
         engine = make_engine(self._data_dir)
+        # Ensure every table exists (e.g. `interested`) even when opportunities are already
+        # loaded; create_all only adds missing tables and never drops data.
+        Base.metadata.create_all(engine)
         if count_opportunities(engine) == 0:
             rebuild_from_json(engine, self._load_records())
         self._session_factory = make_session_factory(engine)
@@ -250,6 +256,83 @@ class OpportunityRepository:
                 if alias is not None:
                     row = session.get(OpportunityRow, alias.opportunity_id)
             return row.record if row is not None else None
+
+    # ------------------------------------------------------------------
+    # Interested / saved opportunities (per browser-scoped client id)
+    # ------------------------------------------------------------------
+    def _canonical_id(self, opportunity_id: str) -> str | None:
+        """Resolve an id (which may be a secondary source id) to its canonical opportunity id."""
+        record = self.get_record(opportunity_id)
+        return record.get("opportunity_id") if record else None
+
+    def is_interested(self, client_id: str, opportunity_id: str) -> bool:
+        canonical = self._canonical_id(opportunity_id)
+        if not canonical:
+            return False
+        factory = self._ensure_store()
+        with factory() as session:  # type: Session
+            found = session.execute(
+                select(InterestedRow.id).where(
+                    InterestedRow.client_id == client_id,
+                    InterestedRow.opportunity_id == canonical,
+                )
+            ).first()
+            return found is not None
+
+    def add_interest(self, client_id: str, opportunity_id: str) -> str | None:
+        """Save an opportunity for this client. Idempotent (unique constraint); returns the
+        canonical opportunity id, or None if the opportunity does not exist."""
+        canonical = self._canonical_id(opportunity_id)
+        if not canonical:
+            return None
+        factory = self._ensure_store()
+        try:
+            with factory() as session, session.begin():  # type: Session
+                exists = session.execute(
+                    select(InterestedRow.id).where(
+                        InterestedRow.client_id == client_id,
+                        InterestedRow.opportunity_id == canonical,
+                    )
+                ).first()
+                if exists is None:
+                    session.add(InterestedRow(
+                        client_id=client_id, opportunity_id=canonical,
+                        created_at=datetime.now(timezone.utc).isoformat(),
+                    ))
+        except IntegrityError:
+            pass  # a concurrent insert already saved it; still idempotent
+        return canonical
+
+    def remove_interest(self, client_id: str, opportunity_id: str) -> str | None:
+        canonical = self._canonical_id(opportunity_id)
+        if not canonical:
+            return None
+        factory = self._ensure_store()
+        with factory() as session, session.begin():  # type: Session
+            session.execute(delete(InterestedRow).where(
+                InterestedRow.client_id == client_id,
+                InterestedRow.opportunity_id == canonical,
+            ))
+        return canonical
+
+    def interested_ids(self, client_id: str) -> list[str]:
+        factory = self._ensure_store()
+        with factory() as session:  # type: Session
+            rows = session.execute(
+                select(InterestedRow.opportunity_id)
+                .where(InterestedRow.client_id == client_id)
+                .order_by(InterestedRow.created_at.desc())
+            ).scalars().all()
+            return list(rows)
+
+    def list_interested(self, client_id: str) -> list[OpportunityDetailsResponse]:
+        """Saved opportunities as full details (most recently saved first)."""
+        details: list[OpportunityDetailsResponse] = []
+        for opportunity_id in self.interested_ids(client_id):
+            mapped = self.get_details(opportunity_id)
+            if mapped is not None:
+                details.append(mapped)
+        return details
 
     # ------------------------------------------------------------------
     # Details (public contract)

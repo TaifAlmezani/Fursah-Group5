@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 import asyncio
+from dataclasses import replace
 
+from app.infrastructure.tracing import Tracer
 from app.schemas import DiscoveryRequest, DiscoveryStatus, SearchConstraints, UserProfile
 from app.workflow import discover, discover_all
 
@@ -45,13 +47,25 @@ def test_exact_match_not_padded_with_approximate(deps):
     assert all(not any("أقرب خيار" in c for c in rec.caveats) for rec in r.recommendations)
 
 
-def test_execution_log_records_stages(deps):
-    r = asyncio.run(discover(_req("ورشة في تحليل البيانات في الرياض"), deps))
-    steps = [e.step for e in r.execution_log]
-    assert "interpret" in steps
-    assert "tool.search" in steps
-    assert "assess" in steps
-    assert all(e.elapsed_ms >= 0 for e in r.execution_log)
+class _RecordingTracer(Tracer):
+    """Captures what the backend tracer receives, without printing."""
+    def __init__(self):
+        super().__init__()
+        self.steps: list[str] = []
+
+    def emit(self, *, request_id, step, component, outcome, elapsed_ms=0, evidence_ids=None):
+        self.steps.append(step)
+        return None
+
+
+def test_agent_log_goes_to_backend_not_the_response(deps):
+    """Task 3: technical steps are logged in the BACKEND tracer, never on the public response."""
+    tracer = _RecordingTracer()
+    r = asyncio.run(discover(_req("ورشة في تحليل البيانات في الرياض"), replace(deps, tracer=tracer)))
+    # The public response carries no technical log.
+    assert "execution_log" not in r.model_dump()
+    # The backend tracer recorded the agent stages.
+    assert {"interpret", "tool.search", "assess", "rank"} <= set(tracer.steps)
 
 
 def test_browse_pagination_is_consistent(deps):

@@ -1,5 +1,6 @@
 import type { EligibilityStatus, Recommendation } from '../types';
 import { UNKNOWN, fmtDeadline, label, modeLabel } from '../labels';
+import MatchTooltip from './MatchTooltip';
 
 
 export function EligibilityBadge({ status }: { status: EligibilityStatus }) {
@@ -12,12 +13,31 @@ export function EligibilityBadge({ status }: { status: EligibilityStatus }) {
   );
 }
 
+/** Interested ("مهتم") toggle. Saved state is driven by the parent; aria-pressed exposes it. */
+export function InterestButton({ saved, onToggle, busy }: { saved: boolean; onToggle: () => void; busy?: boolean }) {
+  return (
+    <button
+      type="button"
+      className={`btn btn--sm interest-btn ${saved ? 'interest-btn--on' : 'btn--outline'}`}
+      aria-pressed={saved}
+      aria-label={saved ? 'إزالة من قائمة المهتم بها' : 'حفظ في قائمة المهتم بها'}
+      title={saved ? 'إزالة من المهتم بها' : 'حفظ كمهتم'}
+      disabled={busy}
+      onClick={onToggle}
+    >
+      <span aria-hidden="true">{saved ? '★' : '☆'}</span> مهتم
+    </button>
+  );
+}
+
 interface Props {
   rec: Recommendation;
   onOpen: () => void;
+  saved: boolean;
+  onToggleSave: () => void;
 }
 
-export default function OpportunityCard({ rec, onOpen }: Props) {
+export default function OpportunityCard({ rec, onOpen, saved, onToggleSave }: Props) {
   const meta = [label(rec.opportunity_type), rec.location, modeLabel(rec.delivery_mode)].filter(Boolean).join(' · ') || 'النوع والموقع غير معروفين';
   return (
     <article className="card opp">
@@ -27,10 +47,7 @@ export default function OpportunityCard({ rec, onOpen }: Props) {
           <div className="opp__meta">{meta}</div>
         </div>
         {rec.relevance_score != null && (
-          <div className="opp__score">
-            <small>الملاءمة</small>
-            <strong>{Math.round(rec.relevance_score)}%</strong>
-          </div>
+          <MatchTooltip score={rec.relevance_score} factors={rec.match_factors ?? []} />
         )}
       </div>
 
@@ -61,6 +78,7 @@ export default function OpportunityCard({ rec, onOpen }: Props) {
 
       <div className="opp__actions">
         <button className="btn btn--primary btn--sm" onClick={onOpen}>عرض التفاصيل</button>
+        <InterestButton saved={saved} onToggle={onToggleSave} />
         <span className="spacer" />
         {rec.source_ids.length > 0 && <span className="opp__sources" dir="ltr">{rec.source_ids.join(', ')}</span>}
       </div>

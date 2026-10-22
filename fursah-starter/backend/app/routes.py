@@ -12,7 +12,8 @@ from .infrastructure.dependencies import AppDependencies, get_app_dependencies
 from .infrastructure.errors import ErrorCode, FursahError, RecordNotFound
 from .schemas import (
     ApiErrorResponse, BrowseResponse, DiscoveryRequest, DiscoveryResponse, DiscoveryStatus,
-    HealthResponse, OpportunityDetailsResponse, ReadinessResponse,
+    HealthResponse, InterestRequest, InterestStatusResponse, InterestedListResponse,
+    OpportunityDetailsResponse, ReadinessResponse,
 )
 from .workflow import discover, discover_all
 
@@ -143,6 +144,46 @@ async def discover_all_route(
     request_id = body.request_id or (request.headers.get("x-request-id") or "").strip()[:120] or str(uuid4())
     body = body.model_copy(update={"request_id": request_id})
     return await discover_all(body, deps, offset=offset, limit=limit)
+
+
+@router.post("/api/v1/interested", response_model=InterestStatusResponse)
+def save_interest(
+    body: InterestRequest,
+    deps: AppDependencies = Depends(get_app_dependencies),
+):
+    """Save ('مهتم') an opportunity for a browser-scoped client. Idempotent; 404 if unknown."""
+    canonical = deps.repository.add_interest(body.client_id, body.opportunity_id)
+    if canonical is None:
+        payload = ApiErrorResponse(
+            request_id=str(uuid4()), error_code=ErrorCode.OPPORTUNITY_NOT_FOUND,
+            message="The requested opportunity was not found.", details=[],
+        )
+        return JSONResponse(status_code=404, content=payload.model_dump(mode="json"))
+    return InterestStatusResponse(opportunity_id=canonical, interested=True)
+
+
+@router.delete("/api/v1/interested/{opportunity_id}", response_model=InterestStatusResponse)
+def remove_interest(
+    opportunity_id: str,
+    client_id: str,
+    deps: AppDependencies = Depends(get_app_dependencies),
+):
+    canonical = deps.repository.remove_interest(client_id, opportunity_id)
+    return InterestStatusResponse(opportunity_id=canonical or opportunity_id, interested=False)
+
+
+@router.get("/api/v1/interested", response_model=InterestedListResponse)
+def list_interests(
+    client_id: str,
+    deps: AppDependencies = Depends(get_app_dependencies),
+):
+    """A client's saved opportunities, most recent first (full details for display)."""
+    opportunities = deps.repository.list_interested(client_id)
+    return InterestedListResponse(
+        client_id=client_id,
+        opportunity_ids=[item.opportunity_id for item in opportunities],
+        opportunities=opportunities,
+    )
 
 
 @router.get(

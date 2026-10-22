@@ -15,10 +15,12 @@ interface Props {
   onRetry: () => void;
   onFocusQuery: () => void;
   onOpenDetails: (rec: Recommendation) => void;
+  isSaved: (id: string) => boolean;
+  onToggleSave: (id: string) => void;
 }
 
 /** Renders exactly one of: initial / loading / ok / needs_info / no_match / error. */
-export default function SearchResults({ view, res, more = [], browseTotal, browseLoading, onShowMore, onShowAll, onEditProfile, onRetry, onFocusQuery, onOpenDetails, onResolve }: Props) {
+export default function SearchResults({ view, res, more = [], browseTotal, browseLoading, onShowMore, onShowAll, onEditProfile, onRetry, onFocusQuery, onOpenDetails, onResolve, isSaved, onToggleSave }: Props) {
   const shown = (res?.recommendations.length ?? 0) + more.length;
   const hasMore = view === 'ok' && (browseTotal == null || shown < browseTotal);
   return (
@@ -49,7 +51,13 @@ export default function SearchResults({ view, res, more = [], browseTotal, brows
           </div>
           {res.message && <p className="notice">{res.message}</p>}
           {[...res.recommendations, ...more].map(r => (
-            <OpportunityCard key={r.opportunity_id} rec={r} onOpen={() => onOpenDetails(r)} />
+            <OpportunityCard
+              key={r.opportunity_id}
+              rec={r}
+              onOpen={() => onOpenDetails(r)}
+              saved={isSaved(r.opportunity_id)}
+              onToggleSave={() => onToggleSave(r.opportunity_id)}
+            />
           ))}
           {(hasMore || browseLoading) && (
             <div className="state__actions">
@@ -114,19 +122,6 @@ export default function SearchResults({ view, res, more = [], browseTotal, brows
         </div>
       )}
 
-      {res?.execution_log?.length ? (
-        <details className="notice" style={{ marginTop: '1rem' }}>
-          <summary><strong>سجل عمل الوكيل ({res.execution_log.length} خطوة)</strong></summary>
-          <ol className="list list--tight" style={{ marginTop: '.5rem' }}>
-            {res.execution_log.map(s => (
-              <li key={s.seq}>
-                <strong>{s.step}</strong> · <span className="muted">{s.component}</span> — {s.detail}
-                <span className="mono muted" dir="ltr"> · {s.elapsed_ms} ms</span>
-              </li>
-            ))}
-          </ol>
-        </details>
-      ) : null}
     </section>
   );
 }

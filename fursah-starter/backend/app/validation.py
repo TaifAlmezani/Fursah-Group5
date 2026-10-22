@@ -13,7 +13,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Any
 
-from .schemas import EligibilityStatus, Recommendation
+from .schemas import EligibilityStatus, MatchFactor, Recommendation
 from .tools import (
     DEADLINE_EXPIRED,
     DEADLINE_SAME_DAY,
@@ -101,6 +101,7 @@ def to_recommendation(
     application_status: str | None,
     evaluation_time: datetime,
     extra_caveats: list[str] | None = None,
+    match_factors: list[MatchFactor] | None = None,
 ) -> Recommendation | None:
     """Assemble a public Recommendation only if it is fully grounded in the record.
 
@@ -137,4 +138,5 @@ def to_recommendation(
         caveats=caveats,
         source_ids=source_ids,
         relevance_score=relevance_score,
+        match_factors=match_factors or [],
     )

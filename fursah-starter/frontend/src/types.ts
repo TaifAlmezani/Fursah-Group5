@@ -48,6 +48,12 @@ export interface DiscoveryRequest {
 
 /* ---------- Discovery response ---------- */
 
+export type MatchKind = 'match' | 'mismatch' | 'unknown';
+export interface MatchFactor {
+  text: string;
+  kind: MatchKind;
+}
+
 export interface Recommendation {
   evidence_version?: string | null;
   opportunity_id: string;
@@ -63,14 +69,7 @@ export interface Recommendation {
   source_ids: string[];
   relevance_score?: number | null; // 0–100
   next_action?: string | null;
-}
-
-export interface ExecutionStep {
-  seq: number;
-  step: string;
-  component: string;
-  detail: string;
-  elapsed_ms: number;
+  match_factors?: MatchFactor[]; // auditable score breakdown for the tooltip
 }
 
 export interface DiscoveryResponse {
@@ -81,10 +80,16 @@ export interface DiscoveryResponse {
   missing_explanations?: string[];
   constraint_conflict?: boolean;
   approximate?: boolean;               // closest shown because no exact match
-  execution_log?: ExecutionStep[];     // what the agent did (stages, tools, model calls)
   recommendations: Recommendation[]; // max 3 rendered
   missing_fields: string[];          // e.g. "profile.city"
   error_code: string | null;
+}
+
+/** A client's saved ("مهتم") opportunities. */
+export interface InterestedList {
+  client_id: string;
+  opportunity_ids: string[];
+  opportunities: OpportunityDetails[];
 }
 
 /** Paginated full ranking for "show more / show all". */

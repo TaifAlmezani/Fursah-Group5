@@ -42,12 +42,19 @@ from .schemas import (
     DiscoveryRequest,
     DiscoveryResponse,
     DiscoveryStatus,
-    ExecutionStep,
+    MatchFactor,
+    MatchKind,
     Recommendation,
     UserProfile,
     SearchConstraints,
 )
-from .tools import DEADLINE_EXPIRED, evaluate_deadline, search_opportunities
+from .tools import (
+    DEADLINE_EXPIRED,
+    DEADLINE_SAME_DAY,
+    DEADLINE_UNKNOWN,
+    evaluate_deadline,
+    search_opportunities,
+)
 from .validation import to_recommendation
 
 # --------------------------------------------------------------------------
@@ -289,24 +296,20 @@ async def interpret_node(state: DiscoveryState) -> DiscoveryState:
     if not types:
         types = _detect_query_types(request.query)
 
-    # Optional, strictly-validated LLM enrichment. It can only narrow/enrich, never invent.
+    # Optional LLM enrichment — SOFT keywords only. The model must never add hard filters
+    # (delivery mode, type, city): inferring e.g. "in-person" from «في الرياض» wrongly drops
+    # online matches. Hard filters come only from the form + deterministic detection above.
     llm = state.get("llm")
     if llm is not None:
         try:
             hints = await interpret_query(llm, request.query, profile, constraints)
-            llm_used = bool(hints)
+            llm_used = bool(hints.get("keywords"))
         except Exception:
             hints = {}
         for keyword in hints.get("keywords", []):
             stems = _stems(keyword)
             terms += list(stems)
             content += [s for s in stems if s not in _STRUCTURAL_STEMS and s not in _CITY_STEMS]
-        if not types and hints.get("opportunity_types"):
-            types = hints["opportunity_types"]
-        if not modes and hints.get("delivery_modes"):
-            modes = hints["delivery_modes"]
-        if not locations and not conflict and hints.get("city") in CITIES:
-            locations = [hints["city"]]
 
     criteria = SearchCriteria(
         text_terms=sorted({t for t in terms if t}),
@@ -474,10 +477,11 @@ def _route(state: DiscoveryState) -> str:
 # Terminal nodes (build the public response)
 # --------------------------------------------------------------------------
 def _base(state: DiscoveryState, **kwargs) -> dict[str, Any]:
+    # The agent log stays in state["log"] and goes to the BACKEND tracer (see discover());
+    # it is deliberately NOT placed on the public response. Users see messages, not traces.
     return {
         "request_id": state["request"].request_id,
         "interpreted_filters": state.get("interpreted_filters", []),
-        "execution_log": [ExecutionStep(**entry) for entry in state.get("log", [])],
         **kwargs,
     }
 
@@ -544,6 +548,87 @@ def _fallback_reason(record: dict[str, Any]) -> str:
     return f"{type_label} «{title}»{where}{tail}، وتطابق كلمات طلبك واهتماماتك."
 
 
+def explain_match(
+    record: dict[str, Any],
+    criteria: SearchCriteria,
+    content: set[str],
+    profile: UserProfile,
+    *,
+    is_approx: bool,
+    evaluation_time: datetime,
+    application_status: str | None,
+) -> list[MatchFactor]:
+    """Auditable breakdown of the relevance score — every factor comes from a real signal.
+
+    Nothing here invents weights or claims; it reports what the deterministic scoring and the
+    filters actually saw, and clearly separates confirmed matches, mismatches and unknowns.
+    """
+    factors: list[MatchFactor] = []
+
+    if content:
+        hit = sorted(content & _record_stems(record))
+        if hit:
+            factors.append(MatchFactor(text=f"يطابق كلمات بحثك: {'، '.join(hit)}", kind=MatchKind.MATCH))
+        elif is_approx:
+            factors.append(MatchFactor(text="لا يطابق كلمات بحثك مباشرة", kind=MatchKind.MISMATCH))
+
+    topic_stems = (
+        set().union(*(_stems(t) for t in record.get("topics") or []))
+        if record.get("topics") else set()
+    )
+    if profile.interests:
+        shared = [i for i in profile.interests if _stems(i) & topic_stems]
+        if shared:
+            factors.append(MatchFactor(text=f"يطابق اهتمامك: {'، '.join(shared)}", kind=MatchKind.MATCH))
+
+    opp_type = record.get("opportunity_type")
+    if criteria.opportunity_types and opp_type in criteria.opportunity_types:
+        factors.append(MatchFactor(text=f"النوع مطابق: {TYPE_AR.get(opp_type, opp_type)}", kind=MatchKind.MATCH))
+
+    if criteria.locations:
+        location = record.get("location")
+        if location in criteria.locations:
+            factors.append(MatchFactor(text=f"المدينة مطابقة: {location}", kind=MatchKind.MATCH))
+        elif record.get("delivery_mode") == "online":
+            factors.append(MatchFactor(text="عن بُعد — غير مقيّد بمدينة", kind=MatchKind.MATCH))
+
+    mode = record.get("delivery_mode")
+    if criteria.delivery_modes and mode in criteria.delivery_modes:
+        factors.append(MatchFactor(text=f"طريقة الحضور مطابقة: {MODE_AR.get(mode, mode)}", kind=MatchKind.MATCH))
+
+    cost = record.get("cost_sar")
+    if criteria.max_budget_sar is not None:
+        if isinstance(cost, (int, float)) and cost <= criteria.max_budget_sar:
+            factors.append(MatchFactor(text=f"ضمن ميزانيتك: {cost:g} ريال", kind=MatchKind.MATCH))
+        elif cost is None:
+            factors.append(MatchFactor(text="الرسوم غير مذكورة؛ قد لا تكون ضمن ميزانيتك", kind=MatchKind.UNKNOWN))
+    elif cost is None:
+        factors.append(MatchFactor(text="الرسوم غير مذكورة", kind=MatchKind.UNKNOWN))
+
+    registration = {
+        "open": ("التسجيل مفتوح", MatchKind.MATCH),
+        "not_yet_open": ("لم يبدأ التسجيل بعد", MatchKind.UNKNOWN),
+        "closed": ("التسجيل مغلق", MatchKind.MISMATCH),
+        "requires_verification": ("حالة التسجيل متعارضة بين المصادر", MatchKind.UNKNOWN),
+    }.get(application_status or "")
+    if registration:
+        factors.append(MatchFactor(text=registration[0], kind=registration[1]))
+
+    deadline_state = evaluate_deadline(record, evaluation_time)
+    if deadline_state == DEADLINE_SAME_DAY:
+        factors.append(MatchFactor(text="ينتهي التقديم اليوم والساعة غير محددة", kind=MatchKind.UNKNOWN))
+    elif deadline_state == DEADLINE_UNKNOWN:
+        factors.append(MatchFactor(text="موعد التقديم غير مؤكد", kind=MatchKind.UNKNOWN))
+
+    # Eligibility is never confirmed from this data.
+    factors.append(MatchFactor(text="الأهلية غير مؤكدة من البيانات المتاحة", kind=MatchKind.UNKNOWN))
+
+    if is_approx:
+        factors.append(MatchFactor(text="ليست مطابقة تامة لطلبك", kind=MatchKind.MISMATCH))
+
+    return factors[:8]
+
+
 async def rank_node(state: DiscoveryState) -> DiscoveryState:
     started = time.perf_counter()
     request = state["request"]
@@ -552,37 +637,30 @@ async def rank_node(state: DiscoveryState) -> DiscoveryState:
     repo = state["deps"].repository
     approximate = state.get("approximate", False)
 
-    # RAG re-rank: let the model order the RETRIEVED pool by meaning (handles the Arabic
-    # morphology/synonyms keyword scoring misses). It only ever orders ids from the pool, so
-    # grounding holds; on failure or with no key we keep the deterministic order below.
+    # RAG re-rank: the model may reorder ONLY the exact (topic-relevant) matches by meaning —
+    # it never promotes an off-topic "closest" item, and it never changes the score. So a weak
+    # model can refine the order of relevant results but cannot surface an irrelevant one with
+    # a fabricated percentage. The scores stay deterministic and honest; the reason, the
+    # tooltip factors and the number always agree.
     ranked_all = state["ranked_all"]
+    exact = [(record, score) for record, score, is_approx in ranked_all if not is_approx]
+    tail = [item for item in ranked_all if item[2]]  # approximate "closest" items, kept as-is
     reranked = False
-    if llm is not None and ranked_all:
-        pool = [record for record, _, _ in ranked_all][:25]
+    if llm is not None and len(exact) >= 2:
         try:
-            order = await rerank(llm, request.query, request.profile, pool)
+            order = await rerank(llm, request.query, request.profile, [rec for rec, _ in exact])
         except Exception:
             order = None
         if order:
             position = {oid: i for i, oid in enumerate(order)}
-
-            def _key(item):
-                record, score, _flag = item
-                return (0, position[record["opportunity_id"]]) \
-                    if record.get("opportunity_id") in position else (1, -score)
-
-            # The model's picks become the top, as semantic matches (rank-based score, flagged
-            # exact); everything it left out keeps its deterministic score/flag for show-more.
-            ranked_all = [
-                (record, max(55.0, round(94.0 - position[record["opportunity_id"]] * 6.0, 1)), False)
-                if record.get("opportunity_id") in position else (record, score, is_approx)
-                for record, score, is_approx in sorted(ranked_all, key=_key)
-            ]
-            approximate = False
+            exact.sort(key=lambda pair: position.get(pair[0]["opportunity_id"], len(order)))
             reranked = True
+    ranked_all = [(record, score, False) for record, score in exact] + tail
 
     # Build the FULL ordered list so browse can paginate; /discover shows only the top slice.
     # Only the items /discover shows get an LLM-written reason, to bound cost.
+    criteria = state["criteria"]
+    content = set(state.get("content_terms") or [])
     all_recs: list[Recommendation] = []
     approx_flags: list[bool] = []
     llm_reasons = 0
@@ -598,13 +676,19 @@ async def rank_node(state: DiscoveryState) -> DiscoveryState:
         if not reason:
             reason = _fallback_reason(record)
 
+        application_status = repo.application_status(record)
         rec = to_recommendation(
             record,
             reason=reason,
             relevance_score=round(score, 1),
-            application_status=repo.application_status(record),
+            application_status=application_status,
             evaluation_time=evaluation_time,
             extra_caveats=[_APPROX_CAVEAT] if is_approx else None,
+            match_factors=explain_match(
+                record, criteria, content, request.profile,
+                is_approx=is_approx, evaluation_time=evaluation_time,
+                application_status=application_status,
+            ),
         )
         if rec is not None:
             all_recs.append(rec)
@@ -692,6 +776,22 @@ def application_is_ready(deps: AppDependencies) -> bool:
         return False
 
 
+def _emit_log(deps: AppDependencies, request_id: str, log: list[dict[str, Any]]) -> None:
+    """Send the agent steps to the BACKEND tracer only (stdout / JSONL, and Phoenix when
+    enabled). These technical steps are intentionally never placed on the public response."""
+    for entry in log:
+        try:
+            deps.tracer.emit(
+                request_id=request_id,
+                step=str(entry.get("step", "step")),
+                component=str(entry.get("component", "workflow")),
+                outcome=str(entry.get("detail", "")),
+                elapsed_ms=float(entry.get("elapsed_ms", 0.0)),
+            )
+        except Exception:
+            pass
+
+
 async def discover(request: DiscoveryRequest, deps: AppDependencies) -> DiscoveryResponse:
     """Public request + dependencies -> DiscoveryResponse, within the workflow time budget."""
     evaluation_time = deps.evaluation_time or deps.settings.resolve_evaluation_time()
@@ -714,6 +814,7 @@ async def discover(request: DiscoveryRequest, deps: AppDependencies) -> Discover
             message="تجاوز البحث المدة المسموحة قبل الوصول إلى نتيجة آمنة.",
             error_code="FURSAH_TIMEOUT",
         )
+    _emit_log(deps, request.request_id, final.get("log", []))
     return final["response"]
 
 
@@ -746,6 +847,7 @@ async def discover_all(
             message="تجاوز البحث المدة المسموحة.", total=0, offset=offset, limit=limit,
         )
 
+    _emit_log(deps, request.request_id, final.get("log", []))
     response = final["response"]
     all_recs = final.get("all_recommendations", [])
     return BrowseResponse(
